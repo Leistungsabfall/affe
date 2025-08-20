@@ -1,0 +1,49 @@
+.vspace {
+    margin-top: 2rem;
+}
+
+.vspace-sm {
+    margin-top: 1rem;
+}
+
+.code {
+    color: #272b30;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    background-color: #aaa;
+    padding: 1rem;
+    border-radius: 5px;
+    max-width: 22rem;
+    margin: 0 auto;
+    margin-top: 5px;
+}
+
+.carousel-caption {
+    background: rgba(48, 48, 48, 0.8);
+}
+
+.carousel-control-next-icon {
+    background-size: 200% 200%;
+}
+
+.carousel-control-prev-icon {
+    background-size: 200% 200%;
+}
+
+a {
+    text-decoration: none;
+}
+
+.btn-banana {
+    color: #000;
+    background: #bb9944;
+    width: auto;
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-banana:hover {
+    color: #000;
+    background: #997722;
+}
