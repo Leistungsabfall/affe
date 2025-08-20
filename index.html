@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>affe - a full-fledged editor</title>
+        <link href="res/icon.png" rel="icon" type="image/png">
+        <link rel="apple-touch-icon" href="res/icon.png">
+        <meta name="mobile-web-app-capable" content="yes">
+        <link href="res/bootstrap.min.css" rel="stylesheet">
+        <link href="res/custom.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="offset-md-5 col-md-2 offset-sm-3 col-sm-6 offset-xs-5 col-xs-2 offset-3 col-6 text-center">
+                    <div class="vspace-sm"></div>
+                    <img class="img-fluid" src="res/logo.png">
+                    <div class="vspace-sm"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 text-center">
+                    <h1>affe</h1>
+                    <h2 class="text-secondary">a user-friendly text editor</h2>
+
+                    <div id="carouselScreenshots" class="carousel slide carousel-fade offset-sm-1 col-sm-10 vspace-sm" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#carouselScreenshots" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                            <button type="button" data-bs-target="#carouselScreenshots" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                            <button type="button" data-bs-target="#carouselScreenshots" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                            <button type="button" data-bs-target="#carouselScreenshots" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                            <button type="button" data-bs-target="#carouselScreenshots" data-bs-slide-to="4" aria-label="Slide 5"></button>
+                            <button type="button" data-bs-target="#carouselScreenshots" data-bs-slide-to="5" aria-label="Slide 6"></button>
+                            <button type="button" data-bs-target="#carouselScreenshots" data-bs-slide-to="6" aria-label="Slide 7"></button>
+                        </div>
+                        <div class="carousel-inner">
+                            <div class="carousel-item active" data-bs-interval="9500">
+                                <video autoplay muted loop class="d-block w-100">
+                                    <source src="res/video_000.webm" type="video/webm">
+                                </video>
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>Full mouse support</h5>
+                                    <p>Scrolling, clicking, text selection</p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="res/screenshot_000.png" class="d-block w-100">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>git integration</h5>
+                                    <p>Inline git diff and git minimap</p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="res/screenshot_001.png" class="d-block w-100">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>Autocompletion</h5>
+                                    <p>Fuzzy autocompletion triggered by <kbd>Ctrl</kbd> + <kbd>Tab</kbd></p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="res/screenshot_002.png" class="d-block w-100">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>Inline git blame</h5>
+                                    <p>Colored commits show code changes</p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="res/screenshot_003.png" class="d-block w-100">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>Find &amp; Replace</h5>
+                                    <p>Powerful find &amp; replace functionality</p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="res/screenshot_004.png" class="d-block w-100">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>Keyboard shortcuts</h5>
+                                    <p>Familiar keyboard shortcuts for text editing &amp; navigation</p>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <img src="res/screenshot_005.png" class="d-block w-100">
+                                <div class="carousel-caption d-none d-md-block">
+                                    <h5>Get creative</h5>
+                                    <p>Draw some diagrams: <kbd>affe &lt;file&gt;.paint</kbd></p>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselScreenshots" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselScreenshots" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    </div>
+
+                    <hr>
+                    <h1>Download</h1>
+                    <h4 class="text-success">Current version</h4>
+                    <h6><b><span id="version"></span></b></h6>
+                    <h4 class="text-success vspace-sm">Binaries</h4>
+                    <h6><a download href="https://raw.githubusercontent.com/Leistungsabfall/affe/refs/heads/main/bin/affe">affe (Linux x86-64)</a></h6>
+                    <h6><a download href="https://raw.githubusercontent.com/Leistungsabfall/affe/refs/heads/main/bin/affe.exe">affe (Git Bash for Windows x86-64) - <b>Experimental</b></a></h6>
+                    <h4 class="text-success vspace-sm">Installation via command line</h4>
+                    <h6>Linux (x86-64):</h6>
+                    <pre class="code">curl -sS https://affe.sh/linux | sh</pre>
+                    <h6 class="vspace-sm"><b>Experimental:</b> Git Bash for Windows (x86-64):</h6>
+                    <pre class="code">curl -sS https://affe.sh/windows | sh</pre>
+                    <h4 class="text-success vspace-sm">Source code</h4>
+                    <h6><a target="_blank" href="https://github.com/Leistungsabfall/affe">https://github.com/Leistungsabfall/affe</a></h6>
+                    <hr>
+                    <h1>What is affe?</h1>
+                    <p>
+                        <i>&quot;A terminal-based editor enhanced with some fancy features.&quot;</i>
+                    </p>
+                    <p>
+                        <b class="text-success">affe</b> is an acronym for <b class="text-success">a</b> <b class="text-success">f</b>ull-<b class="text-success">f</b>ledged <b class="text-success">e</b>ditor.
+                    </p>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <h1 class="text-center">Features</h1>
+                <div class="col-sm-6">
+                    <h4 class="text-success">Terminal-based</h4>
+                    <ul>
+                        <li>No <b>GUI</b></li>
+                        <li>Runs in a <b>terminal</b> (even over SSH)</li>
+                        <li>Like <kbd>vim</kbd> , <kbd>nano</kbd> , etc.</li>
+                    </ul>
+                    <h4 class="text-success">User-friendly</h4>
+                    <ul>
+                        <li>Full <b>mouse support</b>
+                            <ul>
+                                <li>Scrolling</li>
+                                <li>Clicking</li>
+                                <li>Text selection</li>
+                            </ul>
+                        </li>
+                        <li>Easy to remember <b>keyboard shortcuts</b>
+                            <ul>
+                                <li><kbd>Esc</kbd> : Exit</li>
+                                <li><kbd>Ctrl+C</kbd> : Copy</li>
+                                <li><kbd>Ctrl+V</kbd> : Paste</li>
+                                <li><kbd>Ctrl+S</kbd> : Save</li>
+                                <li>...</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <h4 class="text-success">Cross-plattform</h4>
+                    <ul>
+                        <li>Written in <b>Python 3</b></li>
+                        <li>Runs on every <b>CPU architecture</b> supported by Python:
+                            <ul>
+                                <li>x86</li>
+                                <li>x86-64</li>
+                                <li>ARM</li>
+                                <li>...</li>
+                            </ul>
+                        </li>
+                        <li>Runs on every <b>operating system</b> supported by Python:
+                            <ul>
+                                <li>Linux</li>
+                                <li>Windows</li>
+                                <li>MacOS</li>
+                                <li>QNX</li>
+                            </ul>
+                        </li>
+                        <li>For <b>Linux</b> and <b>Git Bash for Windows</b> (x86-64):
+                            <ul>
+                                <li>Single-file binary file</li>
+                                <li>~ 8MB</li>
+                                <li>No external dependencies</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-sm-6">
+                    <h4 class="text-success">git integration</h4>
+                    <ul>
+                        <li>Inline <b>git diff</b> &amp; <b>git minimap</b> (like in an IDE)</li>
+                        <li>Inline <b>git blame</b> (switchable)</li>
+                        <li>Option to <b>restore</b> file content ( <kbd>git checkout</kbd> )</li>
+                    </ul>
+                    <h4 class="text-success">Text completion</h4>
+                    <ul>
+                        <li><b>Fuzzy</b> autocomplete functionality<br>
+                            <b>Example:</b><br>
+                            Starting autocompletion on the string <b>arg</b> could return the following suggestions:
+                            <ul>
+                                <li><b>arg</b>parse</li>
+                                <li><b>Arg</b>umentParser</li>
+                                <li><b>a</b>dd<b>R</b>egular<b>G</b>rammarRule</li>
+                                <li>default<b>Arg</b>s</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <h4 class="text-success">Find &amp; replace</h4>
+                    <ul>
+                        <li><b>Find &amp; replace</b> functionality</li>
+                        <li><b>Forward</b> and <b>backward</b> search</li>
+                        <li><b>Find</b> options:
+                            <ul>
+                                <li>Match case-<b>sensitive</b></li>
+                                <li>Match case-<b>insensitive</b></li>
+                            </ul>
+                        </li>
+                        <li><b>Replace</b> options:
+                            <ul>
+                                <li>Replace <b>one</b> occurrence</li>
+                                <li>Replace <b>all</b> occurrences</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <h4 class="text-success">Syntax highlighting</h4>
+                    <ul>
+                        <li>Using <b>Pygments</b> lexers</li>
+                        <li>Updates <b>instantly</b> while typing</li>
+                        <li>Support for over <b>500</b> languages &amp; other text formats</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="offset-sm-4 col-sm-4 vspace">
+                <img class="img-fluid rounded-circle" src="res/bananas.jpg">
+            </div>
+            <hr class="vspace">
+            <div class="row">
+                <p class="text-center">affe (2019-<span id="current-year"></span>), created by <a target="_blank" href="https://github.com/Leistungsabfall"><b>Leistungsabfall</b></a></p>
+                <div class="text-center">
+                    <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="Leistungsabfall" data-color="#FFDD00" data-emoji="🍌"  data-font="Comic" data-text="Buy me a banana" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+                </div>
+                <div class="vspace"></div>
+            </div>
+        </div>
+        <script src="res/custom.js"></script>
+        <script src="res/bootstrap.min.js"></script>
+    </body>
+</html>

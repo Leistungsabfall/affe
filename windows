@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+TARGET_DIR=$USERPROFILE/bin
+if [[ ":$PATH:" == *":$TARGET_DIR:"* ]]; then
+    echo Error: $TARGET_DIR is not part of the PATH variable. Please run this script only in Git Bash for Windows.
+    exit 1
+fi
+mkdir -p $TARGET_DIR
+echo "Downloading affe to $TARGET_DIR"
+curl -sS --fail https://raw.githubusercontent.com/Leistungsabfall/affe/refs/heads/main/bin/affe.exe -o $USERPROFILE/bin/affe
+affe
