@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+set -eu
+
+SCRIPT_PATH=$0
+case "$SCRIPT_PATH" in
+	/*) ;;
+	*) SCRIPT_PATH="$PWD/$SCRIPT_PATH" ;;
+esac
+
+# Follow symlinks so THIS_DIR points to the real script location.
+while [ -L "$SCRIPT_PATH" ]; do
+	LINK_DIR=$(CDPATH= cd -- "$(dirname -- "$SCRIPT_PATH")" && pwd)
+	SCRIPT_PATH=$(readlink "$SCRIPT_PATH")
+	case "$SCRIPT_PATH" in
+		/*) ;;
+		*) SCRIPT_PATH="$LINK_DIR/$SCRIPT_PATH" ;;
+	esac
+done
+
+THIS_DIR=$(CDPATH= cd -- "$(dirname -- "$SCRIPT_PATH")" && pwd)
+
+. "$THIS_DIR/env/bin/activate"
+python "$THIS_DIR/res/src/main.py" "$@"

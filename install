@@ -1,0 +1,184 @@
+#!/usr/bin/env sh
+set -eu
+
+echo '(  0%) Installing affe...'
+REPO_URL='https://github.com/Leistungsabfall/affe'
+TARGET_DIR="$HOME/.affe"
+TARGET_DIR_BAK="$TARGET_DIR.bak"
+ARCHIVE_NAME='affe.tar.gz'
+
+delete_target_dir_bak() {
+  rm -rf "$TARGET_DIR_BAK"
+}
+
+if [ -d "$TARGET_DIR" ]; then
+  delete_target_dir_bak
+  mv "$TARGET_DIR" "$TARGET_DIR_BAK"
+fi
+
+delete_archive() {
+  rm -f "$TARGET_DIR/$ARCHIVE_NAME"
+}
+
+delete_target_dir() {
+  rm -rf "$TARGET_DIR"
+}
+
+rollback() {
+  delete_archive
+  delete_target_dir
+  if [ -d "$TARGET_DIR_BAK" ]; then
+    mv "$TARGET_DIR_BAK" "$TARGET_DIR"
+  fi
+}
+
+echo_and_exit() {
+  echo "$1"
+  echo
+  echo 'Rolling back all changes'
+  rollback
+  echo
+  echo "Visit $REPO_URL for instructions on how to run affe from source"
+  exit 1
+}
+
+check_python_version() {
+  echo '( 10%) Checking for Python 3.10 or higher...'
+  PYTHON_BIN=''
+
+  for minor in 20 19 18 17 16 15 14 13 12 11 10; do
+    candidate="python3.$minor"
+    if command -v "$candidate" > /dev/null 2>&1; then
+      PYTHON_BIN="$candidate"
+      break
+    fi
+  done
+
+  if [ -z "$PYTHON_BIN" ] && command -v python3 > /dev/null 2>&1; then
+    PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
+    PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d. -f1)
+    PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f2)
+
+    if [ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -ge 10 ]; then
+      PYTHON_BIN="python3"
+    fi
+  fi
+
+  if [ -z "$PYTHON_BIN" ]; then
+    echo_and_exit 'Python 3.10 or higher is required, but no supported version was found'
+  fi
+}
+
+create_target_dir() {
+  echo "( 20%) Creating target directory $TARGET_DIR..."
+  if ! mkdir -p "$TARGET_DIR"; then
+    echo_and_exit "Failed to create target directory $TARGET_DIR"
+  fi
+}
+
+download_archive() {
+  echo "( 30%) Determining latest release from $REPO_URL..."
+  VERSION_REGEX='^[0-9]+\.[0-9]+\.[0-9]+$'
+
+  # No GitHub API call
+  VERSION=$(curl -sL -o /dev/null -w %{url_effective} "$REPO_URL/releases/latest" | sed 's#.*/tag/##' || true)
+  if ! echo "$VERSION" | grep -Eq "$VERSION_REGEX"; then
+    echo 'Could not fetch latest version from GitHub, trying fallback method...'
+
+    # Fallback: GitHub API call (may fail due to rate limits)
+    VERSION=$(curl -sI "$REPO_URL/releases/latest" | grep -i ^location | sed 's|.*/tag/||' | tr -d '\r' || true)
+    if ! echo "$VERSION" | grep -Eq "$VERSION_REGEX"; then
+      echo_and_exit 'Could not fetch latest version due to GitHub API rate limits, try again later'
+    fi
+  fi
+
+  echo "( 40%) Downloading affe version $VERSION..."
+  DOWNLOAD_URL="$REPO_URL/releases/download/$VERSION/$ARCHIVE_NAME"
+  if ! curl -sSL --fail "$DOWNLOAD_URL" -o "$TARGET_DIR/$ARCHIVE_NAME"; then
+    echo_and_exit "Downloading $DOWNLOAD_URL failed"
+  fi
+}
+
+extract_archive() {
+  echo '( 50%) Extracting affe archive...'
+  if ! tar xzf "$TARGET_DIR/$ARCHIVE_NAME" -C "$TARGET_DIR"; then
+    echo_and_exit 'Downloaded archive is not a valid tar.gz file'
+  fi
+}
+
+create_python_env() {
+  echo '( 60%) Creating Python virtual environment...'
+  if ! "$PYTHON_BIN" -m venv "$TARGET_DIR/env"; then
+    echo_and_exit 'Failed to create Python virtual environment'
+  fi
+
+  echo '( 70%) Upgrading pip in the virtual environment...'
+  if ! "$TARGET_DIR/env/bin/pip" install --quiet --upgrade pip; then
+    echo_and_exit 'Failed to upgrade pip in the virtual environment'
+  fi
+
+  echo '( 80%) Installing Python dependencies in the virtual environment...'
+  if ! "$TARGET_DIR/env/bin/pip" install --quiet -r "$TARGET_DIR/res/requirements.txt"; then
+    echo_and_exit 'Failed to install Python dependencies in the virtual environment'
+  fi
+}
+
+append_line_once() {
+  line="$1"
+  file="$2"
+  if ! grep -Fqx "$line" "$file"; then
+    printf '\n%s\n' "$line" >> "$file"
+  fi
+}
+
+export_to_path() {
+  echo '( 90%) Adding affe to PATH...'
+  POSIX_LINE='export PATH="$PATH:$HOME/.affe"'
+  TARGET_FILE=''
+
+  for f in "$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"; do
+    if [ -f "$f" ]; then
+      TARGET_FILE="$f"
+      break
+    fi
+  done
+
+  if [ -n "$TARGET_FILE" ]; then
+    append_line_once "$POSIX_LINE" "$TARGET_FILE"
+    return
+  fi
+
+  FISH_FILE="$HOME/.config/fish/conf.d/10-affe-path.fish"
+  FISH_LINE='fish_add_path -m "$HOME/.affe"'
+  append_line_once "$FISH_LINE" "$FISH_FILE"
+}
+
+check_python_version
+create_target_dir
+download_archive
+extract_archive
+create_python_env
+export_to_path
+delete_archive
+delete_target_dir_bak
+
+echo '(100%) Installation complete!'
+echo
+echo 'affe has been added to your PATH variable.'
+echo
+echo 'To use affe with sudo, create a symlink:'
+echo
+echo '    sudo ln -s $(which affe) /usr/local/bin/affe'
+echo
+echo 'If you want to use affe immediately, restart your terminal or run the following command:'
+echo
+echo '    export PATH="$PATH:$HOME/.affe"'
+echo
+echo 'To set affe as your default editor, run:'
+echo
+echo '   git config --global core.editor affe'
+echo
+echo 'and add the following line to your shell profile file (e.g. ~/.profile or ~/.zprofile):'
+echo
+echo '   export EDITOR="affe"'
+echo

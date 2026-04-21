@@ -1,0 +1,196 @@
+name: Release
+
+on:
+  workflow_call:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-valid-tag-on-main:
+    name: Verify tag and main ancestry
+    runs-on: ubuntu-latest
+    outputs:
+      is_valid_tag: ${{ steps.validate.outputs.is_valid_tag }}
+      is_on_main: ${{ steps.main_check.outputs.is_on_main }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag format
+        id: validate
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if echo "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo 'is_valid_tag=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'is_valid_tag=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify tagged commit is on main
+        id: main_check
+        run: |
+          git fetch origin main
+          if git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo 'is_on_main=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'is_on_main=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fail when tag is invalid or not on main
+        if: steps.validate.outputs.is_valid_tag != 'true' || steps.main_check.outputs.is_on_main != 'true'
+        run: |
+          echo "Tag '${GITHUB_REF_NAME}' is invalid or does not point to a commit on main."
+          exit 1
+
+      - name: Extract version
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
+
+  create-release-artifacts:
+    name: Bundle files for release
+    needs: check-valid-tag-on-main
+    if: needs.check-valid-tag-on-main.outputs.is_valid_tag == 'true' && needs.check-valid-tag-on-main.outputs.is_on_main == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Create version.txt for affe
+        run: |
+          echo '${{ needs.check-valid-tag-on-main.outputs.version }}' > version.txt
+
+      - name: Create release bundle
+        run: |
+          ./scripts/install.sh dist && \
+          tar czf affe.tar.gz -C dist .
+
+      - name: Upload release bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-artifacts
+          path: affe.tar.gz
+
+  publish:
+    name: Publish release
+    needs:
+      - check-valid-tag-on-main
+      - create-release-artifacts
+    if: needs.check-valid-tag-on-main.outputs.is_valid_tag == 'true' && needs.check-valid-tag-on-main.outputs.is_on_main == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: release-artifacts
+          path: release-artifacts
+
+      - name: Build release notes from latest changelog entry
+        run: |
+          FIRST_HEADING="$(grep -m1 '^## ' CHANGELOG.md || true)"
+          if [ -z "$FIRST_HEADING" ]; then
+            echo 'No changelog section found in CHANGELOG.md'
+            exit 1
+          fi
+
+          EXPECTED_PREFIX="## ${{ needs.check-valid-tag-on-main.outputs.version }} "
+          if [[ "$FIRST_HEADING" != "$EXPECTED_PREFIX"* ]]; then
+            echo "Latest changelog heading must start with '$EXPECTED_PREFIX'"
+            echo "Found: '$FIRST_HEADING'"
+            exit 1
+          fi
+
+          {
+            echo '# Release Notes'
+            echo
+            awk '
+              /^## / {
+                section_count++
+                if (section_count > 1) {
+                  exit
+                }
+                next
+              }
+              section_count == 1
+            ' CHANGELOG.md
+            echo
+            echo '<hr>'
+            echo
+            echo '## Installation'
+            echo
+            echo '### Automatic Installation'
+            echo
+            echo 'You can always install the latest release by using the one-liner at [affe.sh](https://affe.sh)'
+            echo
+            echo 'If you have `affe` already installed, run the following command to update to the latest version automatically:'
+            echo
+            echo '```sh'
+            echo 'affe --update'
+            echo '```'
+            echo
+            echo '**Note:** Works since Release `1.1.0`.'
+            echo
+            echo '### Manual Installation'
+            echo
+            echo 'If you want to install this release manually, download [affe.tar.gz](https://github.com/Leistungsabfall/affe/releases/download/${{ needs.check-valid-tag-on-main.outputs.version }}/affe.tar.gz) and run the following commands:'
+            echo
+            echo '```sh'
+            echo 'rm -rf ~/.affe'
+            echo 'mkdir -p ~/.affe'
+            echo 'tar xzf <path-to-affe.tar.gz> -C ~/.affe'
+            echo 'rm -f <path-to-affe.tar.gz>'
+            echo '```'
+            echo
+            echo 'Then add the following line to your shell profile file (e.g. `~/.profile` or `~/.zprofile`):'
+            echo
+            echo '```sh'
+            echo 'export PATH="$PATH:$HOME/.affe"'
+            echo '```'
+            echo
+            echo 'After that, restart your terminal or run the above export command.'
+            echo
+            echo 'You can now run `affe` from the terminal.'
+            echo
+            echo 'If you want to use `affe` with `sudo`, create a symlink:'
+            echo
+            echo '```sh'
+            echo 'sudo ln -s $(which affe) /usr/local/bin/affe'
+            echo '```'
+            echo
+            echo 'To set affe as your default editor, run:'
+            echo
+            echo '```sh'
+            echo 'git config --global core.editor affe'
+            echo '```'
+            echo
+            echo 'and add the following line to your shell profile file (e.g. ~/.profile or ~/.zprofile):'
+            echo
+            echo '```sh'
+            echo 'export EDITOR="affe"'
+            echo '```'
+            echo
+          } > release-notes.md
+
+          if ! awk 'NR > 2 && NF { found = 1 } END { exit(found ? 0 : 1) }' release-notes.md; then
+            echo 'Latest changelog section has no content'
+            exit 1
+          fi
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.check-valid-tag-on-main.outputs.version }}
+          files: release-artifacts/*.tar.gz
+          body_path: release-notes.md

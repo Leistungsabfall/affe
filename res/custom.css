@@ -1,0 +1,114 @@
+.vspace {
+    margin-top: 2rem;
+}
+
+.vspace-sm {
+    margin-top: 1rem;
+}
+
+.vspace-xs {
+    margin-top: 0.5rem;
+}
+
+.code-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 5px;
+}
+
+.code {
+    color: #272b30;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    background-color: #aaa;
+    padding: 1rem;
+    border-radius: 5px;
+    max-width: 24rem;
+    margin: 0;
+}
+
+.copy-btn {
+    background-color: #aaa;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.copy-btn:hover {
+    background-color: #888;
+}
+
+.copy-btn:disabled,
+.copy-btn:disabled:hover {
+    background-color: #aaa;
+    opacity: 1;
+    color: #000;
+}
+
+.copy-tooltip {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+.copy-tooltip.show {
+    opacity: 1;
+}
+
+.carousel-caption {
+    background: rgba(48, 48, 48, 0.8);
+}
+
+.carousel-control-next-icon {
+    background-size: 200% 200%;
+}
+
+.carousel-control-prev-icon {
+    background-size: 200% 200%;
+}
+
+a {
+    text-decoration: none;
+}
+
+.btn-banana {
+    text-shadow: none;
+    color: #000;
+    background: #bb9944;
+    width: auto;
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-banana:hover {
+    color: #000;
+    background: #997722;
+}
+
+.github-icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}

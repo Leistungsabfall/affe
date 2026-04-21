@@ -1,0 +1,15 @@
+.idea/
+
+env/
+dist/
+
+.coverage
+*.pyc
+__pycache__
+
+test/temp.txt
+src/tmp_*.py
+*.paint
+*.paint.txt
+
+.DS_Store
