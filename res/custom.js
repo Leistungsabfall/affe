@@ -1,4 +1,7 @@
-document.getElementById('current-year').textContent = String(new Date().getFullYear());
+
+function showCurrentYear() {
+  document.getElementById('current-year').textContent = new Date().getFullYear();
+}
 
 function copyToClipboard(button) {
   if (button.disabled) {
@@ -80,4 +83,5 @@ async function showLatestVersion() {
   }
 }
 
-showLatestVersion()
+showCurrentYear();
+showLatestVersion();
