@@ -10,7 +10,7 @@ function copyToClipboard(button) {
   const text = codeBlock.textContent;
   navigator.clipboard.writeText(text).then(() => {
     const originalContent = button.innerHTML;
-    button.innerHTML = '<b>✓</b>';
+    button.innerHTML = '<span class="copy-checkmark" aria-hidden="true">✓</span>';
 
     // Show tooltip
     let tooltip = button.querySelector('.copy-tooltip');

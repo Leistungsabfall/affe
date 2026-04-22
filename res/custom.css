@@ -11,8 +11,9 @@
 }
 
 .code-container {
+    --code-block-height: calc((0.9rem * 1.2) + 2rem);
     display: inline-flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0.5rem;
     margin-top: 5px;
 }
@@ -33,16 +34,28 @@
     color: #000;
     border: none;
     border-radius: 5px;
-    padding: 0.5rem 0.75rem;
+    padding: 0;
     cursor: pointer;
     font-size: 1rem;
     transition: background-color 0.2s;
-    width: 40px;
-    height: 40px;
+    width: var(--code-block-height);
+    height: var(--code-block-height);
+    flex: 0 0 var(--code-block-height);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+}
+
+.copy-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.copy-btn .copy-checkmark {
+    font-size: 1.5rem;
+    line-height: 1;
+    font-weight: 700;
 }
 
 .copy-btn:hover {
