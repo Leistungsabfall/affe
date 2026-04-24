@@ -169,13 +169,13 @@ jobs:
             echo 'sudo ln -sf $HOME/.affe/affe /usr/local/bin/affe'
             echo '```'
             echo
-            echo 'To set affe as your default editor, run:'
+            echo 'To set `affe` as your default editor, run:'
             echo
             echo '```sh'
             echo 'git config --global core.editor affe'
             echo '```'
             echo
-            echo 'and add the following line to your shell profile file (e.g. ~/.profile or ~/.zprofile):'
+            echo 'and add the following line to your shell profile file (e.g. `~/.profile` or `~/.zprofile`):'
             echo
             echo '```sh'
             echo 'export EDITOR="affe"'
