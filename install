@@ -166,13 +166,13 @@ echo '(100%) Installation complete!'
 echo
 echo 'affe has been added to your PATH variable.'
 echo
-echo 'To use affe with sudo, create a symlink:'
-echo
-echo '    sudo ln -s $(which affe) /usr/local/bin/affe'
-echo
 echo 'If you want to use affe immediately, restart your terminal or run the following command:'
 echo
 echo '    export PATH="$PATH:$HOME/.affe"'
+echo
+echo 'To use affe with sudo, create a symlink:'
+echo
+echo '    sudo ln -sf $HOME/.affe/affe /usr/local/bin/affe'
 echo
 echo 'To set affe as your default editor, run:'
 echo

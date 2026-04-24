@@ -166,7 +166,7 @@ jobs:
             echo 'If you want to use `affe` with `sudo`, create a symlink:'
             echo
             echo '```sh'
-            echo 'sudo ln -s $(which affe) /usr/local/bin/affe'
+            echo 'sudo ln -sf $HOME/.affe/affe /usr/local/bin/affe'
             echo '```'
             echo
             echo 'To set affe as your default editor, run:'
