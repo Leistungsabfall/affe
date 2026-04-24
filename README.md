@@ -99,13 +99,31 @@ pip install -r res/requirements.txt
 deactivate
 ```
 
-Finally, add the following line to your shell profile file (e.g. `~/.profile` or `~/.zprofile`):
+Then, add the following line to your shell profile file (e.g. `~/.profile` or `~/.zprofile`):
 
 ```sh
 export PATH="$PATH:<path-to-dist-folder>" # Replace <path-to-dist-folder> with the actual path to the dist folder
 ```
 
 You can now start `affe` by simply running `affe` in the terminal.
+
+To use `affe` with `sudo`, create a symlink:
+
+```sh
+sudo ln -sf <path-to-dist-folder>/affe /usr/local/bin/affe
+```
+
+To set `affe` as your default editor, run:
+
+```sh
+git config --global core.editor affe
+```
+
+and add the following line to your shell profile file (e.g. `~/.profile` or `~/.zprofile`):
+
+```sh
+export EDITOR="affe"
+```
 
 ## Keyboard shortcuts
 
@@ -203,10 +221,6 @@ So you may already know most of them from Notepad++ or your favorite IDE.
 
 * Why do I see weird `?` characters all over the place?
   * Enable `UTF-8` support by running the following command in the terminal: `export LC_ALL=C.UTF-8`
-
-* How can I use `affe` as the default editor, e.g. for `git commit` messages?
-  * Run the following command: `git config --global core.editor "affe"`
-    and add `export EDITOR=affe` to your shell profile file (e.g. `~/.profile` or `~/.zprofile`).
 
 ## Known Limitations
 
