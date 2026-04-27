@@ -66,7 +66,7 @@ Install the latest release from [affe.sh](https://affe.sh) or run `affe` from so
 
 **Prerequisites:**
 
-* **OS:** Linux or MacOS
+* **OS:** Linux or macOS
 * **Python** 3.10 or higher
 * **Packages:**
   * `git` (for git integration features)

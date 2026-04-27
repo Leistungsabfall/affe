@@ -105,10 +105,14 @@ a {
     text-decoration: none;
 }
 
+kbd {
+    margin-right: 0.25em;
+}
+
 .btn-banana {
     text-shadow: none;
     color: #000;
-    background: #bb9944;
+    background: #997722;
     width: auto;
     display: inline-block;
     margin-left: auto;
@@ -116,8 +120,8 @@ a {
 }
 
 .btn-banana:hover {
-    color: #000;
-    background: #997722;
+    color: #eee;
+    background: #886611;
 }
 
 .github-icon {
