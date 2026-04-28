@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 - 2026-04-28
+
+* Fix `TextWithCommentLexer` to correctly handle inline comments by ensuring a space before the `#` is required for it to be recognized as a comment. This prevents valid text containing `#` from being misclassified as a comment.
+
 ## 1.1.0 - 2026-04-24
 
 * Re-release after move to GitHub and using GitHub releases for distribution

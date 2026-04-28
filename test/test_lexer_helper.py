@@ -18,6 +18,7 @@ from pygments.lexers.robotframework import RobotFrameworkLexer
 from pygments.lexers.shell import BashLexer
 from pygments.lexers.special import TextLexer
 from pygments.util import ClassNotFound
+from pygments.token import Comment, Text
 
 from prompt_toolkit.lexers import SimpleLexer
 from util import lexer_helper
@@ -336,3 +337,18 @@ class TestLexerHelper(unittest.TestCase):
         for filename in filenames:
             lexer = guess_lexer_wrapper(filename=filename, text='')
             self.assertEqual(lexer.pygments_lexer_cls, TextWithCommentLexer)
+
+    def test_comments_in_text_with_comment_lexer(self):
+        lexer = TextWithCommentLexer()
+        text = "text # inline comment\n# full line comment with space\n#full line comment without space\ncomment#invalid text2"
+
+        emitted = [(ttype, value) for ttype, value in lexer.get_tokens(text) if value.strip()]
+
+        text_values = ''.join(value for ttype, value in emitted if ttype in Text)
+        comment_values = ''.join(value for ttype, value in emitted if ttype in Comment)
+
+        self.assertIn("text", text_values)
+        self.assertIn("inline comment", comment_values)
+        self.assertIn("full line comment with space", comment_values)
+        self.assertIn("full line comment without space", comment_values)
+        self.assertIn("comment#invalidtext2", text_values.replace(' ', ''))
