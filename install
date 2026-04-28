@@ -118,7 +118,7 @@ create_python_env() {
   fi
 
   echo '( 80%) Installing Python dependencies in the virtual environment...'
-  if ! "$TARGET_DIR/env/bin/pip" install --quiet -r "$TARGET_DIR/res/requirements.txt"; then
+  if ! "$TARGET_DIR/env/bin/pip" install --quiet --no-cache-dir -r "$TARGET_DIR/res/requirements.txt"; then
     echo_and_exit 'Failed to install Python dependencies in the virtual environment'
   fi
 }
