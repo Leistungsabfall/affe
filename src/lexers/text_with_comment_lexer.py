@@ -7,6 +7,7 @@ class TextWithCommentLexer(RegexLexer):
         'root': [
             (r'^#.*$', Comment),
             (r'\s#.*$', Comment),
+            (r'[^\s#]+', Text),
             (r'.', Text),
         ],
     }
