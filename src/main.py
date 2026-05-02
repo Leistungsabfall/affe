@@ -43,6 +43,7 @@ from util.gui_helper import update_find_toolbar_if_visible, get_line_prefix
 from util.lexer_helper import guess_lexer_wrapper
 from util.super_important_modules import module2
 from util.super_important_modules import module3
+from util.version_helper import get_version
 
 
 def parse_args():
@@ -69,14 +70,24 @@ def parse_args():
         help='update to latest version',
         action='store_true',
     )
+    parser.add_argument(
+        '-v', '--version',
+        help='display version information and exit',
+        action='store_true',
+    )
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = parse_args()
 
+    if args.version:
+        print(get_version())
+        sys.exit(0)
+
     if args.update:
         update()
+        sys.exit(0)
 
     Globals.file_path = args.file
 

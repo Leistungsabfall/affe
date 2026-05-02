@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* Add `-v, --version` flag to display the current version of `affe` and exit.
+
 ## 1.1.1 - 2026-04-28
 
 * Fix `TextWithCommentLexer` to correctly handle inline comments by ensuring a space before the `#` is required for it to be recognized as a comment. This prevents valid text containing `#` from being misclassified as a comment.
