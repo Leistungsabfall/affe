@@ -105,6 +105,8 @@ Then, add the following line to your shell profile file (e.g. `~/.profile` or `~
 export PATH="$PATH:<path-to-dist-folder>" # Replace <path-to-dist-folder> with the actual path to the dist folder
 ```
 
+After that, restart your terminal or run the above export command.
+
 You can now start `affe` by simply running `affe` in the terminal.
 
 To use `affe` with `sudo`, create a symlink:
