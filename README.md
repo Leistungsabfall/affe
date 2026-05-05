@@ -1,6 +1,6 @@
 # affe - a full-fledged editor 🐵
 
-[![Tests](https://github.com/Leistungsabfall/affe/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/Leistungsabfall/affe/actions/workflows/tests.yml)
+[![Unit Tests](https://github.com/Leistungsabfall/affe/actions/workflows/unit_tests.yml/badge.svg?branch=main)](https://github.com/Leistungsabfall/affe/actions/workflows/unit_tests.yml)
 [![Release](https://img.shields.io/github/v/release/Leistungsabfall/affe?logo=task&logoColor=959DA5&label=Current%20Release&color=blue&labelColor=343B42&style=flat)](https://github.com/Leistungsabfall/affe/releases/latest)
 [![Requirements](https://img.shields.io/badge/Python-3.10%20or%20higher-yellow?logo=Python&logoColor=959DA5&labelColor=343B42&style=flat)](https://www.python.org/downloads)
 [![Website](https://img.shields.io/badge/Website-https://affe.sh-lightgreen?logo=htmx&logoColor=959DA5&labelColor=343B42&style=flat)](https://affe.sh)

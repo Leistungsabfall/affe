@@ -1,69 +1,126 @@
 name: Release
 
 on:
-  workflow_call:
+  push:
+    tags:
+      - '*.*.*'
 
 permissions:
+  actions: read
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
   check-valid-tag-on-main:
-    name: Verify tag and main ancestry
+    name: Verify tests, tag, and main ancestry
     runs-on: ubuntu-latest
     outputs:
-      is_valid_tag: ${{ steps.validate.outputs.is_valid_tag }}
-      is_on_main: ${{ steps.main_check.outputs.is_on_main }}
-      version: ${{ steps.version.outputs.version }}
+      is_on_main: ${{ steps.context.outputs.is_on_main }}
+      version: ${{ steps.context.outputs.version }}
     steps:
+      - name: Verify branch Unit Tests workflow already passed for this commit
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const sha = context.sha;
+            const { owner, repo } = context.repo;
+            const timeoutMs = 15 * 60 * 1000;
+            const pollIntervalMs = 15 * 1000;
+            const deadline = Date.now() + timeoutMs;
+
+            while (Date.now() < deadline) {
+              const response = await github.rest.actions.listWorkflowRuns({
+                owner,
+                repo,
+                workflow_id: 'unit_tests.yml',
+                head_sha: sha,
+                event: 'push',
+                per_page: 100,
+              });
+
+              const runs = [...response.data.workflow_runs].sort(
+                (a, b) => new Date(b.created_at) - new Date(a.created_at)
+              );
+
+              if (runs.length === 0) {
+                core.info(
+                  `No 'Unit Tests' run found yet for commit ${sha}. Waiting ${pollIntervalMs / 1000}s...`
+                );
+                await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+                continue;
+              }
+
+              const latestRun = runs[0];
+              core.info(
+                `Latest 'Unit Tests' run status=${latestRun.status}, conclusion=${latestRun.conclusion ?? 'n/a'}: ${latestRun.html_url}`
+              );
+
+              if (latestRun.status !== 'completed') {
+                await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+                continue;
+              }
+
+              if (latestRun.conclusion === 'success') {
+                core.info(`Found successful Unit Tests run: ${latestRun.html_url}`);
+                return;
+              }
+
+              core.setFailed(
+                `Unit Tests workflow for commit ${sha} completed with conclusion '${latestRun.conclusion}'. ` +
+                `See ${latestRun.html_url}`
+              );
+              return;
+            }
+
+            core.setFailed(
+              `Timed out after ${timeoutMs / 60000} minutes waiting for a completed successful 'Unit Tests' run for commit ${sha}.`
+            );
+
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
-      - name: Validate tag format
-        id: validate
+      - name: Resolve release context
+        id: context
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          if echo "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo 'is_valid_tag=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'is_valid_tag=false' >> "$GITHUB_OUTPUT"
+          SHA='${{ github.sha }}'
+          TAG='${{ github.ref_name }}'
+
+          echo 'is_on_main=false' >> "$GITHUB_OUTPUT"
+
+          if ! echo "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Tag '$TAG' is not a valid release version (expected x.y.z)."
+            exit 1
           fi
 
-      - name: Verify tagged commit is on main
-        id: main_check
-        run: |
-          git fetch origin main
-          if git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo 'is_on_main=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'is_on_main=false' >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Fail when tag is invalid or not on main
-        if: steps.validate.outputs.is_valid_tag != 'true' || steps.main_check.outputs.is_on_main != 'true'
-        run: |
-          echo "Tag '${GITHUB_REF_NAME}' is invalid or does not point to a commit on main."
-          exit 1
-
-      - name: Extract version
-        id: version
-        run: |
-          TAG="${GITHUB_REF_NAME}"
           echo "version=$TAG" >> "$GITHUB_OUTPUT"
+
+          git fetch origin main
+          if git merge-base --is-ancestor "$SHA" origin/main; then
+            echo 'is_on_main=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fail when tagged commit is not on main
+        if: steps.context.outputs.is_on_main != 'true'
+        run: |
+          echo "Tagged commit '${{ github.sha }}' is not on main."
+          exit 1
 
   create-release-artifacts:
     name: Bundle files for release
     needs: check-valid-tag-on-main
-    if: needs.check-valid-tag-on-main.outputs.is_valid_tag == 'true' && needs.check-valid-tag-on-main.outputs.is_on_main == 'true'
+    if: needs.check-valid-tag-on-main.outputs.is_on_main == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
 
       - name: Create version.txt for affe
         run: |
@@ -85,11 +142,13 @@ jobs:
     needs:
       - check-valid-tag-on-main
       - create-release-artifacts
-    if: needs.check-valid-tag-on-main.outputs.is_valid_tag == 'true' && needs.check-valid-tag-on-main.outputs.is_on_main == 'true'
+    if: needs.check-valid-tag-on-main.outputs.is_on_main == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
 
       - name: Download artifacts
         uses: actions/download-artifact@v7

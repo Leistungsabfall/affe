@@ -1,0 +1,32 @@
+name: Run Unit Tests
+description: Set up Python, install dependencies, and execute unit test suite.
+
+inputs:
+  python-version:
+    description: Python version to use for this unit test run.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Create virtual environment
+      shell: bash
+      run: |
+        python -m venv env
+        . env/bin/activate
+        python -m pip install --upgrade pip
+
+    - name: Install Python packages
+      shell: bash
+      run: |
+        . env/bin/activate
+        pip install -r requirements.txt
+
+    - name: Run unit tests
+      shell: bash
+      run: ./scripts/test.sh
