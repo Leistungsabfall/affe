@@ -134,23 +134,19 @@ append_line_once() {
 export_to_path() {
   echo '( 90%) Adding affe to PATH...'
   POSIX_LINE='export PATH="$PATH:$HOME/.affe"'
-  TARGET_FILE=''
 
-  for f in "$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"; do
+  for f in "$HOME/.zshenv" "$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile"; do
     if [ -f "$f" ]; then
-      TARGET_FILE="$f"
-      break
+      append_line_once "$POSIX_LINE" "$f"
     fi
   done
 
-  if [ -n "$TARGET_FILE" ]; then
-    append_line_once "$POSIX_LINE" "$TARGET_FILE"
-    return
+  if command -v fish >/dev/null 2>&1; then
+    mkdir -p "$HOME/.config/fish/conf.d"
+    FISH_FILE="$HOME/.config/fish/conf.d/10-affe-path.fish"
+    FISH_LINE='fish_add_path -m "$HOME/.affe"'
+    append_line_once "$FISH_LINE" "$FISH_FILE"
   fi
-
-  FISH_FILE="$HOME/.config/fish/conf.d/10-affe-path.fish"
-  FISH_LINE='fish_add_path -m "$HOME/.affe"'
-  append_line_once "$FISH_LINE" "$FISH_FILE"
 }
 
 check_python_version
