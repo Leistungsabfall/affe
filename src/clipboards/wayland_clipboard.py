@@ -16,7 +16,7 @@ class WaylandClipboard:
     @staticmethod
     def read():
         p = subprocess.run(
-            args=['wl-paste'],
+            args=['wl-paste', '--no-newline'],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
