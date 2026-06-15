@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.2 - 2026-06-15
 
 * Add `-v, --version` flag to display the current version of `affe` and exit.
 * Fix Wayland clipboard paste appending a spurious trailing newline.
