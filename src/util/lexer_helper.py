@@ -58,6 +58,7 @@ def guess_lexer_wrapper(filename, text):
     lexers_assignment[IniLexer] = (
         'gitconfig',
         'Cargo.lock',
+        '.npmrc',
     )
 
     lexers_assignment[TextWithCommentLexer] = (
