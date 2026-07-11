@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-* Add lexer support for `.npmrc` files.
+* Add lexer support for the following files:
+  * `.npmrc`
+  * `Kustomization`
 
 ## 1.1.2 - 2026-06-15
 

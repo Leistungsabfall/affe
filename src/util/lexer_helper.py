@@ -82,7 +82,10 @@ def guess_lexer_wrapper(filename, text):
         'syslog', '.log',
     )
     lexers_assignment[PerlLexer] = ('.pl', '.perl')
-    lexers_assignment[YamlLexer] = ('clang-format',)
+    lexers_assignment[YamlLexer] = (
+        'clang-format',
+        'kustomization.yaml', 'kustomization.yml', 'kustomization',
+        )
     lexers_assignment[ObjectiveCLexer] = ('.pu', '.puml', '.plantuml')
     lexers_assignment[PythonLexer] = ('.spec',)
 

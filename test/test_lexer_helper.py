@@ -340,3 +340,13 @@ class TestLexerHelper(unittest.TestCase):
     def test_npmrc_files(self):
         lexer = guess_lexer_wrapper(filename='.npmrc', text='')
         self.assertEqual(lexer.pygments_lexer_cls, IniLexer)
+
+    def test_kustomization_yaml_files(self):
+        filenames = (
+            'kustomization.yaml',
+            'kustomization.yml',
+            'kustomization',
+        )
+        for filename in filenames:
+            lexer = guess_lexer_wrapper(filename=filename, text='')
+            self.assertEqual(lexer.pygments_lexer_cls, YamlLexer)
