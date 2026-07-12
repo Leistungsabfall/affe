@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.1.3 - 2026-07-12
 
+* Improve startup time by lazy-loading some imports
 * Add lexer support for the following files:
   * `.npmrc`
   * `Kustomization`
