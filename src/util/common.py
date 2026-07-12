@@ -6,14 +6,7 @@ import subprocess
 import sys
 import tempfile
 
-import pygments
-import requests
-
-from packaging.version import Version
-
 from globals import Globals
-from prompt_toolkit.formatted_text import PygmentsTokens
-from util.lexer_helper import guess_lexer_wrapper
 from util.version_helper import get_version
 
 opening_special_chars = ('{', '(', '[')
@@ -178,7 +171,13 @@ def read_file(file_path):
 
 
 def print_text(file_path, style):
+    import pygments
+
     from prompt_toolkit import print_formatted_text
+    from prompt_toolkit.formatted_text import PygmentsTokens
+
+    from util.lexer_helper import guess_lexer_wrapper
+
     text = read_file(file_path)
     if not os.path.isfile(file_path):
         print('File does not exist.')
@@ -189,6 +188,10 @@ def print_text(file_path, style):
 
 
 def update():
+    import requests
+
+    from packaging.version import Version
+
     repo_url = 'https://github.com/Leistungsabfall/affe'
     repo_api_url = 'https://api.github.com/repos/Leistungsabfall/affe'
     timeout = 10
