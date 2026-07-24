@@ -16,7 +16,8 @@ from .filters import to_filter
 from .history import History, InMemoryHistory
 from .search import SearchDirection, SearchState
 from .selection import SelectionType, SelectionState, PasteMode
-from .utils import Event, test_callable_args, to_str
+# Patched by Leistungsabfall
+from .utils import Event, GraphemeString, test_callable_args, to_str
 from .validation import ValidationError, Validator
 
 from functools import wraps
@@ -359,7 +360,12 @@ class Buffer(object):
 
     @property
     def text(self):
-        return self._working_lines[self.working_index]
+        # Patched by Leistungsabfall
+        text = self._working_lines[self.working_index]
+        if not isinstance(text, GraphemeString):
+            text = GraphemeString(text)
+            self._working_lines[self.working_index] = text
+        return text
 
     @text.setter
     def text(self, value):
@@ -369,6 +375,8 @@ class Buffer(object):
         otherwise set a Document instead.)
         """
         assert isinstance(value, six.text_type), 'Got %r' % value
+        # Patched by Leistungsabfall
+        value = GraphemeString(value)
 
         # Ensure cursor position remains within the size of the text.
         if self.cursor_position > len(value):
@@ -1080,6 +1088,9 @@ class Buffer(object):
         :param fire_event: Fire `on_text_insert` event. This is mainly used to
             trigger autocompletion while typing.
         """
+        # Patched by Leistungsabfall
+        data = GraphemeString(data)
+
         # Original text & cursor position.
         otext = self.text
         ocpos = self.cursor_position
@@ -1097,7 +1108,8 @@ class Buffer(object):
             text = otext[:ocpos] + data + otext[ocpos:]
 
         if move_cursor:
-            cpos = self.cursor_position + len(data)
+            # Patched by Leistungsabfall
+            cpos = len(otext[:ocpos] + data)
         else:
             cpos = self.cursor_position
 

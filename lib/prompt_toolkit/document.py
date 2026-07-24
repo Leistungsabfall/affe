@@ -13,6 +13,8 @@ from six.moves import range, map
 from .clipboard import ClipboardData
 from .filters import vi_mode
 from .selection import SelectionType, SelectionState, PasteMode
+# Patched by Leistungsabfall
+from .utils import GraphemeString
 
 __all__ = [
     'Document',
@@ -32,6 +34,12 @@ _FIND_CURRENT_WORD_INCLUDE_TRAILING_WHITESPACE_RE = re.compile(r'^(([a-zA-Z0-9_]
 _FIND_BIG_WORD_RE = re.compile(r'([^\s]+)')
 _FIND_CURRENT_BIG_WORD_RE = re.compile(r'^([^\s]+)')
 _FIND_CURRENT_BIG_WORD_INCLUDE_TRAILING_WHITESPACE_RE = re.compile(r'^([^\s]+\s*)')
+
+
+# Patched by Leistungsabfall
+def _grapheme_position(text, codepoint_position):
+    return len(GraphemeString(six.text_type(text)[:codepoint_position]))
+
 
 # Share the Document._cache between all Document instances.
 # (Document instances are considered immutable. That means that if another
@@ -85,6 +93,8 @@ class Document(object):
     def __init__(self, text='', cursor_position=None, selection=None):
         assert isinstance(text, six.text_type), 'Got %r' % text
         assert selection is None or isinstance(selection, SelectionState)
+        # Patched by Leistungsabfall
+        text = GraphemeString(text)
 
         # Check cursor position. It can also be right after the end. (Where we
         # insert text.)
@@ -374,10 +384,12 @@ class Document(object):
         try:
             for i, match in enumerate(iterator):
                 if i + 1 == count:
+                    # Patched by Leistungsabfall
+                    position = _grapheme_position(text, match.start(0))
                     if include_current_position:
-                        return match.start(0)
+                        return position
                     else:
-                        return match.start(0) + 1
+                        return position + 1
         except StopIteration:
             pass
 
@@ -391,7 +403,11 @@ class Document(object):
             return  # new
 
         flags = re.IGNORECASE if ignore_case else 0
-        return [a.start() for a in re.finditer(re.escape(sub), self.text, flags)]
+        # Patched by Leistungsabfall
+        return [
+            _grapheme_position(self.text, match.start())
+            for match in re.finditer(re.escape(sub), self.text, flags)
+        ]
 
     def find_backwards(self, sub, in_current_line=False, ignore_case=False, count=1):
         """
@@ -410,12 +426,18 @@ class Document(object):
             before_cursor = self.text_before_cursor[::-1]
 
         flags = re.IGNORECASE if ignore_case else 0
-        iterator = re.finditer(re.escape(sub[::-1]), before_cursor, flags)
+        # Patched by Leistungsabfall
+        iterator = re.finditer(
+            re.escape(GraphemeString(sub)[::-1]), before_cursor, flags
+        )
 
         try:
             for i, match in enumerate(iterator):
                 if i + 1 == count:
-                    return - match.start(0) - len(sub)
+                    return (
+                        -_grapheme_position(before_cursor, match.start(0))
+                        - len(GraphemeString(sub))
+                    )
         except StopIteration:
             pass
 
@@ -468,7 +490,8 @@ class Document(object):
         try:
             for i, match in enumerate(iterator):
                 if i + 1 == count:
-                    return - match.end(0)
+                    # Patched by Leistungsabfall
+                    return -_grapheme_position(text_before_cursor, match.end(0))
         except StopIteration:
             pass
 
@@ -506,9 +529,12 @@ class Document(object):
             if (c1 in alphabet) != (c2 in alphabet):
                 match_before = None
 
+        # Patched by Leistungsabfall
         return (
-            - match_before.end(1) if match_before else 0,
-            match_after.end(1) if match_after else 0
+            -_grapheme_position(text_before_cursor, match_before.end(1))
+            if match_before else 0,
+            _grapheme_position(text_after_cursor, match_after.end(1))
+            if match_after else 0
         )
 
     def get_word_under_cursor(self, WORD=False):
@@ -537,7 +563,10 @@ class Document(object):
                     count += 1
 
                 if i + 1 == count:
-                    return match.start(1)
+                    # Patched by Leistungsabfall
+                    return _grapheme_position(
+                        self.text_after_cursor, match.start(1)
+                    )
         except StopIteration:
             pass
 
@@ -560,7 +589,8 @@ class Document(object):
         try:
             for i, match in enumerate(iterable):
                 if i + 1 == count:
-                    value = match.end(1)
+                    # Patched by Leistungsabfall
+                    value = _grapheme_position(text, match.end(1))
 
                     if include_current_position:
                         return value
@@ -584,7 +614,10 @@ class Document(object):
         try:
             for i, match in enumerate(iterator):
                 if i + 1 == count:
-                    return - match.end(1)
+                    # Patched by Leistungsabfall
+                    return -_grapheme_position(
+                        self.text_before_cursor[::-1], match.end(1)
+                    )
         except StopIteration:
             pass
 
@@ -608,7 +641,11 @@ class Document(object):
                     count += 1
 
                 if i + 1 == count:
-                    return -match.start(1) + 1
+                    # Patched by Leistungsabfall
+                    return (
+                        -_grapheme_position(text_before_cursor, match.start(1))
+                        + 1
+                    )
         except StopIteration:
             pass
 

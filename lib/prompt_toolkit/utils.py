@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 import inspect
 import os
+# Patched by Leistungsabfall
+import re
 import signal
 import sys
 import threading
@@ -10,12 +12,14 @@ from collections import deque
 from functools import partial
 from six import PY2, text_type
 from six.moves import range
-from wcwidth import wcwidth
+# Patched by Leistungsabfall
+from wcwidth import iter_graphemes, wcwidth, wcswidth
 from .cache import memoized
 
 __all__ = [
     'Event',
     'DummyContext',
+    'GraphemeString',
     'get_cwidth',
     'suspend_to_background_supported',
     'is_conemu_ansi',
@@ -27,6 +31,124 @@ __all__ = [
     'to_int',
     'to_float',
 ]
+
+
+_GRAPHEME_LINE_BREAK_RE = re.compile(
+    r'\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]'
+)
+
+
+# Patched by Leistungsabfall
+@memoized(maxsize=1024)
+def _get_graphemes(text):
+    graphemes = []
+    start = 0
+
+    # Segment each hard-line-delimited run independently. Grapheme state,
+    # especially regional-indicator pairing, must not leak across lines.
+    for match in _GRAPHEME_LINE_BREAK_RE.finditer(text):
+        graphemes.extend(iter_graphemes(text[start:match.start()]))
+        graphemes.append(match.group())
+        start = match.end()
+
+    graphemes.extend(iter_graphemes(text[start:]))
+    return tuple(graphemes)
+
+
+class GraphemeString(text_type):
+    """
+    Unicode string whose indexes refer to grapheme clusters.
+
+    This keeps cursor and selection positions aligned with what users perceive
+    as characters, while remaining compatible with APIs that require ``str``.
+    """
+    def _graphemes(self):
+        return _get_graphemes(text_type(self))
+
+    def __len__(self):
+        return len(self._graphemes())
+
+    def __iter__(self):
+        return iter(self._graphemes())
+
+    def __getitem__(self, index):
+        graphemes = self._graphemes()
+        if isinstance(index, slice):
+            return GraphemeString('').join(graphemes[index])
+        return GraphemeString(graphemes[index])
+
+    def codepoint_position(self, grapheme_position):
+        return len(text_type('').join(self._graphemes()[:grapheme_position]))
+
+    def grapheme_position(self, codepoint_position):
+        return len(GraphemeString(text_type(self)[:codepoint_position]))
+
+    def _search_bounds(self, start, end):
+        start, end, _ = slice(start, end).indices(len(self))
+        return self.codepoint_position(start), self.codepoint_position(end)
+
+    def find(self, sub, start=0, end=None):
+        codepoint_start, codepoint_end = self._search_bounds(start, end)
+        position = text_type.find(
+            self, sub, codepoint_start, codepoint_end
+        )
+        if position < 0:
+            return -1
+        return len(GraphemeString(text_type(self)[:position]))
+
+    def rfind(self, sub, start=0, end=None):
+        codepoint_start, codepoint_end = self._search_bounds(start, end)
+        position = text_type.rfind(
+            self, sub, codepoint_start, codepoint_end
+        )
+        if position < 0:
+            return -1
+        return len(GraphemeString(text_type(self)[:position]))
+
+    def index(self, sub, start=0, end=None):
+        position = self.find(sub, start, end)
+        if position < 0:
+            raise ValueError('substring not found')
+        return position
+
+    def rindex(self, sub, start=0, end=None):
+        position = self.rfind(sub, start, end)
+        if position < 0:
+            raise ValueError('substring not found')
+        return position
+
+    def __add__(self, other):
+        return GraphemeString(text_type.__add__(self, other))
+
+    def __radd__(self, other):
+        return GraphemeString(text_type.__add__(other, self))
+
+    def join(self, iterable):
+        return GraphemeString(text_type.join(self, iterable))
+
+    def split(self, *args, **kwargs):
+        return [GraphemeString(part) for part in text_type.split(self, *args, **kwargs)]
+
+    def rsplit(self, *args, **kwargs):
+        return [GraphemeString(part) for part in text_type.rsplit(self, *args, **kwargs)]
+
+    def splitlines(self, *args, **kwargs):
+        return [GraphemeString(part) for part in text_type.splitlines(self, *args, **kwargs)]
+
+    def partition(self, *args, **kwargs):
+        return tuple(GraphemeString(part) for part in text_type.partition(self, *args, **kwargs))
+
+    def rpartition(self, *args, **kwargs):
+        return tuple(GraphemeString(part) for part in text_type.rpartition(self, *args, **kwargs))
+
+    def strip(self, *args, **kwargs):
+        return GraphemeString(text_type.strip(self, *args, **kwargs))
+
+    def lstrip(self, *args, **kwargs):
+        return GraphemeString(text_type.lstrip(self, *args, **kwargs))
+
+    def rstrip(self, *args, **kwargs):
+        return GraphemeString(text_type.rstrip(self, *args, **kwargs))
 
 
 class Event(object):
@@ -185,10 +307,10 @@ class _CharSizesCache(dict):
         #       characters, like e.g. Ctrl-underscore get a -1 wcwidth value.
         #       It can be possible that these characters end up in the input
         #       text.
-        if len(string) == 1:
-            result = max(0, wcwidth(string))
-        else:
-            result = sum(self[c] for c in string)
+        # Patched by Leistungsabfall
+        result = wcswidth(string)
+        if result < 0:
+            result = sum(max(0, wcwidth(char)) for char in text_type(string))
 
         # Store in cache.
         self[string] = result

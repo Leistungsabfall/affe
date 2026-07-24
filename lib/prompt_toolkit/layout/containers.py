@@ -23,7 +23,8 @@ from prompt_toolkit.filters import to_filter, vi_insert_mode, emacs_insert_mode
 from prompt_toolkit.formatted_text import to_formatted_text
 from prompt_toolkit.formatted_text.utils import fragment_list_to_text, fragment_list_width
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
-from prompt_toolkit.utils import take_using_weights, get_cwidth, to_int, to_str
+# Patched by Leistungsabfall
+from prompt_toolkit.utils import GraphemeString, take_using_weights, get_cwidth, to_int, to_str
 
 try:
     from collections.abc import Sequence
@@ -1631,6 +1632,36 @@ class Window(Container):
         visible_line_to_row_col = {}
         rowcol_to_yx = {}  # Maps (row, col) from the input to (y, x) screen coordinates.
 
+        # Patched by Leistungsabfall
+        def iter_display_fragments(line):
+            fragments = explode_text_fragments(line)
+            index = 0
+
+            while index < len(fragments):
+                style, text = fragments[index]
+                if '[ZeroWidthEscape]' in style:
+                    yield style, text, 0
+                    index += 1
+                    continue
+
+                run_end = index
+                while (
+                    run_end < len(fragments)
+                    and '[ZeroWidthEscape]' not in fragments[run_end][0]
+                ):
+                    run_end += 1
+
+                run_text = ''.join(
+                    fragment[1] for fragment in fragments[index:run_end]
+                )
+                run_index = index
+                for grapheme in GraphemeString(run_text):
+                    codepoint_count = len(text_type(grapheme))
+                    yield fragments[run_index][0], text_type(grapheme), codepoint_count
+                    run_index += codepoint_count
+
+                index = run_end
+
         def copy_line(line, lineno, x, y, is_input=False):
             """
             Copy over a single line to the output screen. This can wrap over
@@ -1649,12 +1680,13 @@ class Window(Container):
 
             # Scroll horizontally.
             skipped = 0  # Characters skipped because of horizontal scrolling.
+            # Patched by Leistungsabfall
+            line = list(iter_display_fragments(line))
             if horizontal_scroll and is_input:
                 h_scroll = horizontal_scroll
-                line = explode_text_fragments(line)
                 while h_scroll > 0 and line:
                     h_scroll -= get_cwidth(line[0][1])
-                    skipped += 1
+                    skipped += line[0][2]
                     del line[:1]  # Remove first character.
 
                 x -= h_scroll  # When scrolling over double width character,
@@ -1673,69 +1705,55 @@ class Window(Container):
 
             col = 0
             wrap_count = 0
-            for style, text in line:
+            # Patched by Leistungsabfall
+            for style, c, codepoint_count in line:
                 new_buffer_row = new_buffer[y + ypos]
 
                 # Remember raw VT escape sequences. (E.g. FinalTerm's
                 # escape sequences.)
                 if '[ZeroWidthEscape]' in style:
-                    new_screen.zero_width_escapes[y + ypos][x + xpos] += text
+                    new_screen.zero_width_escapes[y + ypos][x + xpos] += c
                     continue
 
-                for c in text:
-                    char = _CHAR_CACHE[c, style]
-                    char_width = char.width
+                char = _CHAR_CACHE[c, style]
+                char_width = char.width
 
-                    # Wrap when the line width is exceeded.
-                    if wrap_lines and x + char_width > width:
-                        visible_line_to_row_col[y + 1] = (
-                            lineno, visible_line_to_row_col[y][1] + x)
-                        y += 1
-                        wrap_count += 1
-                        x = 0
+                # Wrap when the line width is exceeded.
+                if wrap_lines and x + char_width > width:
+                    visible_line_to_row_col[y + 1] = (
+                        lineno, visible_line_to_row_col[y][1] + x)
+                    y += 1
+                    wrap_count += 1
+                    x = 0
 
-                        # Insert line prefix (continuation prompt).
-                        if is_input and get_line_prefix:
-                            prompt = to_formatted_text(
-                                get_line_prefix(lineno, wrap_count))
-                            x, y = copy_line(prompt, lineno, x, y, is_input=False)
+                    # Insert line prefix (continuation prompt).
+                    if is_input and get_line_prefix:
+                        prompt = to_formatted_text(
+                            get_line_prefix(lineno, wrap_count))
+                        x, y = copy_line(prompt, lineno, x, y, is_input=False)
 
-                        new_buffer_row = new_buffer[y + ypos]
+                    new_buffer_row = new_buffer[y + ypos]
 
-                        if y >= write_position.height:
-                            return x, y  # Break out of all for loops.
+                    if y >= write_position.height:
+                        return x, y  # Break out of all for loops.
 
-                    # Set character in screen and shift 'x'.
-                    if x >= 0 and y >= 0 and x < write_position.width:
-                        new_buffer_row[x + xpos] = char
+                # Set character in screen and shift 'x'.
+                if x >= 0 and y >= 0 and x < write_position.width:
+                    new_buffer_row[x + xpos] = char
 
-                        # When we print a multi width character, make sure
-                        # to erase the neighbours positions in the screen.
-                        # (The empty string if different from everything,
-                        # so next redraw this cell will repaint anyway.)
-                        if char_width > 1:
-                            for i in range(1, char_width):
-                                new_buffer_row[x + xpos + i] = empty_char
+                    # When we print a multi width character, make sure
+                    # to erase the neighbours positions in the screen.
+                    # (The empty string if different from everything,
+                    # so next redraw this cell will repaint anyway.)
+                    if char_width > 1:
+                        for i in range(1, char_width):
+                            new_buffer_row[x + xpos + i] = empty_char
 
-                        # If this is a zero width characters, then it's
-                        # probably part of a decomposed unicode character.
-                        # See: https://en.wikipedia.org/wiki/Unicode_equivalence
-                        # Merge it in the previous cell.
-                        elif char_width == 0:
-                            # Handle all character widths. If the previous
-                            # character is a multiwidth character, then
-                            # merge it two positions back.
-                            for pw in [2, 1]:  # Previous character width.
-                                if x - pw >= 0 and new_buffer_row[x + xpos - pw].width == pw:
-                                    prev_char = new_buffer_row[x + xpos - pw]
-                                    char2 = _CHAR_CACHE[prev_char.char + c, prev_char.style]
-                                    new_buffer_row[x + xpos - pw] = char2
+                    # Keep track of write position for each character.
+                    current_rowcol_to_yx[lineno, col + skipped] = (y + ypos, x + xpos)
 
-                        # Keep track of write position for each character.
-                        current_rowcol_to_yx[lineno, col + skipped] = (y + ypos, x + xpos)
-
-                    col += 1
-                    x += char_width
+                col += codepoint_count
+                x += char_width
             return x, y
 
         # Copy content.

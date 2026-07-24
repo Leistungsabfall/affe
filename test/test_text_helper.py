@@ -44,6 +44,16 @@ class TestTextHelper(unittest.TestCase):
         self.assertEqual(Globals.text_field.text, 'abc{}}')
         self.assertEqual(Globals.text_field.document.cursor_position, 3+1+1)
 
+        init_text_field('', 0)
+        text_helper.type_text('👍')
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('', 0)
+        text_helper.type_text('❤️')
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
     @patch('prompt_toolkit.application.Application.current_buffer', text_field_buffer)
     def test_remove_text_before_cursor(self):
         init_text_field('', 0)
@@ -73,6 +83,16 @@ class TestTextHelper(unittest.TestCase):
 
         init_text_field('abc', 3)
         text_helper.remove_text_before_cursor(3)
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('👍', 1)
+        text_helper.remove_text_before_cursor(1)
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('❤️', 1)
+        text_helper.remove_text_before_cursor(1)
         self.assertEqual(Globals.text_field.text, '')
         self.assertEqual(Globals.text_field.document.cursor_position, 0)
 
@@ -108,6 +128,16 @@ class TestTextHelper(unittest.TestCase):
         self.assertEqual(Globals.text_field.text, '')
         self.assertEqual(Globals.text_field.document.cursor_position, 0)
 
+        init_text_field('👍', 0)
+        text_helper.remove_text_after_cursor(1)
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('❤️', 0)
+        text_helper.remove_text_after_cursor(1)
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
     def test_get_text_before_cursor(self):
         init_text_field('', 0)
         self.assertEqual(text_helper.get_text_before_cursor(0), '')
@@ -126,6 +156,12 @@ class TestTextHelper(unittest.TestCase):
 
         init_text_field('abc', 3)
         self.assertEqual(text_helper.get_text_before_cursor(3), 'abc')
+
+        init_text_field('👍', 1)
+        self.assertEqual(text_helper.get_text_before_cursor(1), '👍')
+
+        init_text_field('❤️', 1)
+        self.assertEqual(text_helper.get_text_before_cursor(1), '❤️')
 
     def test_get_text_after_cursor(self):
         init_text_field('', 0)
@@ -146,6 +182,12 @@ class TestTextHelper(unittest.TestCase):
         init_text_field('abc', 0)
         self.assertEqual(text_helper.get_text_after_cursor(3), 'abc')
 
+        init_text_field('👍', 0)
+        self.assertEqual(text_helper.get_text_after_cursor(1), '👍')
+
+        init_text_field('❤️', 0)
+        self.assertEqual(text_helper.get_text_after_cursor(1), '❤️')
+
     def test_get_char_before_cursor(self):
         init_text_field('', 0)
         self.assertEqual(text_helper.get_char_before_cursor(), '')
@@ -162,6 +204,12 @@ class TestTextHelper(unittest.TestCase):
         init_text_field('abc', 3)
         self.assertEqual(text_helper.get_char_before_cursor(), 'c')
 
+        init_text_field('a👍', 2)
+        self.assertEqual(text_helper.get_char_before_cursor(), '👍')
+
+        init_text_field('a❤️', 2)
+        self.assertEqual(text_helper.get_char_before_cursor(), '❤️')
+
     def test_get_char_after_cursor(self):
         init_text_field('', 0)
         self.assertEqual(text_helper.get_char_after_cursor(), '')
@@ -174,6 +222,12 @@ class TestTextHelper(unittest.TestCase):
 
         init_text_field('abc', 0)
         self.assertEqual(text_helper.get_char_after_cursor(), 'a')
+
+        init_text_field('a👍', 1)
+        self.assertEqual(text_helper.get_char_after_cursor(), '👍')
+
+        init_text_field('a❤️', 1)
+        self.assertEqual(text_helper.get_char_after_cursor(), '❤️')
 
     def test_get_line_until_cursor(self):
         init_text_field('', 0)
@@ -465,6 +519,36 @@ class TestTextHelper(unittest.TestCase):
         with self.assertRaises(ValueError):
             text_helper.move_cursor('foo')
 
+        init_text_field('👍', 0)
+        text_helper.move_cursor(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('👍', 1)
+        text_helper.move_cursor(Direction.Left)
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('a👍', 2)
+        text_helper.move_cursor(Direction.Left)
+        self.assertEqual(Globals.text_field.text, 'a👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('❤️', 0)
+        text_helper.move_cursor(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('❤️', 1)
+        text_helper.move_cursor(Direction.Left)
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('a❤️', 2)
+        text_helper.move_cursor(Direction.Left)
+        self.assertEqual(Globals.text_field.text, 'a❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
     @patch('prompt_toolkit.application.Application.current_buffer', text_field_buffer)
     def test_start_or_extend_selection(self):
         init_text_field('', 0)
@@ -647,6 +731,18 @@ class TestTextHelper(unittest.TestCase):
         self.assertEqual(Globals.text_field.document.cursor_position, 2+1+4+1+2)
         self.assertEqual(Globals.text_field.buffer.copy_selection().text, '\ncdef\ngh')
 
+        init_text_field('👍', 0)
+        text_helper.start_or_extend_selection(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+        self.assertEqual(Globals.text_field.buffer.copy_selection().text, '👍')
+
+        init_text_field('❤️', 0)
+        text_helper.start_or_extend_selection(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+        self.assertEqual(Globals.text_field.buffer.copy_selection().text, '❤️')
+
     @patch('prompt_toolkit.application.Application.current_buffer', text_field_buffer)
     def test_has_selection(self):
         init_text_field('ab\ncdef\nghi', 2)
@@ -774,6 +870,14 @@ class TestTextHelper(unittest.TestCase):
 
         text_helper.type_text('j')
         self.assertFalse(text_helper.get_selected_text())
+
+        init_text_field('👍', 0)
+        text_helper.start_or_extend_selection(Direction.Right)
+        self.assertEqual(text_helper.get_selected_text(), '👍')
+
+        init_text_field('❤️', 0)
+        text_helper.start_or_extend_selection(Direction.Right)
+        self.assertEqual(text_helper.get_selected_text(), '❤️')
 
     def test_in_between_matching_special_chars(self):
         init_text_field('', 0)
@@ -986,6 +1090,16 @@ class TestTextHelper(unittest.TestCase):
         self.assertEqual(Globals.text_field.text, '\n  b \ncd')
         self.assertEqual(Globals.text_field.document.cursor_position, 1)
 
+        init_text_field('👍', 1)
+        text_helper.move_cursor_to_start_of_line()
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('❤️', 1)
+        text_helper.move_cursor_to_start_of_line()
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
     @patch('prompt_toolkit.application.Application.current_buffer', text_field_buffer)
     def test_move_cursor_to_end_of_line(self):
         init_text_field('', 0)
@@ -1027,6 +1141,26 @@ class TestTextHelper(unittest.TestCase):
         text_helper.move_cursor_to_end_of_line()
         self.assertEqual(Globals.text_field.text, '\n  b \ncd')
         self.assertEqual(Globals.text_field.document.cursor_position, 1+2+1+1+1+2)
+
+        init_text_field('👍', 0)
+        text_helper.move_cursor_to_end_of_line()
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('👍a', 0)
+        text_helper.move_cursor_to_end_of_line()
+        self.assertEqual(Globals.text_field.text, '👍a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 2)
+
+        init_text_field('❤️', 0)
+        text_helper.move_cursor_to_end_of_line()
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('❤️a', 0)
+        text_helper.move_cursor_to_end_of_line()
+        self.assertEqual(Globals.text_field.text, '❤️a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 2)
 
     @patch('prompt_toolkit.application.Application.current_buffer', text_field_buffer)
     def test_move_lines(self):

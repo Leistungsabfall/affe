@@ -18,7 +18,8 @@ from prompt_toolkit.lexers import Lexer, SimpleLexer
 from prompt_toolkit.mouse_events import MouseEventType
 from prompt_toolkit.search import SearchState
 from prompt_toolkit.selection import SelectionType
-from prompt_toolkit.utils import get_cwidth
+# Patched by Leistungsabfall
+from prompt_toolkit.utils import GraphemeString, get_cwidth
 
 from .processors import TransformationInput, HighlightSearchProcessor, HighlightIncrementalSearchProcessor, HighlightSelectionProcessor, DisplayMultipleCursors, merge_processors
 from .screen import Point
@@ -593,6 +594,9 @@ class BufferControl(UIControl):
 
         def transform(lineno, fragments):
             " Transform the fragments for a given line number. "
+            # Patched by Leistungsabfall
+            source_line = GraphemeString(document.lines[lineno])
+
             # Get cursor position at this line.
             if document.cursor_position_row == lineno:
                 cursor_column = document.cursor_position_col
@@ -603,7 +607,8 @@ class BufferControl(UIControl):
                 """ X position from the buffer to the x position in the
                 processed fragment list. By default, we start from the 'identity'
                 operation. """
-                return i
+                # Patched by Leistungsabfall
+                return source_line.codepoint_position(i)
 
             transformation = merged_processor.apply_transformation(
                 TransformationInput(
@@ -613,10 +618,21 @@ class BufferControl(UIControl):
             if cursor_column:
                 cursor_column = transformation.source_to_display(cursor_column)
 
+            # Patched by Leistungsabfall
+            def final_source_to_display(i):
+                return transformation.source_to_display(
+                    source_line.codepoint_position(i)
+                )
+
+            def final_display_to_source(i):
+                return source_line.grapheme_position(
+                    transformation.display_to_source(i)
+                )
+
             return _ProcessedLine(
                 transformation.fragments,
-                transformation.source_to_display,
-                transformation.display_to_source)
+                final_source_to_display,
+                final_display_to_source)
 
         def create_func():
             get_line = self._get_formatted_text_for_line_func(document)

@@ -9,12 +9,14 @@ from prompt_toolkit.filters import to_filter
 from prompt_toolkit.formatted_text import to_formatted_text
 from prompt_toolkit.input.base import Input
 from prompt_toolkit.layout.mouse_handlers import MouseHandlers
-from prompt_toolkit.layout.screen import Point, Screen, WritePosition
+# Patched by Leistungsabfall
+from prompt_toolkit.layout.screen import Char, Point, Screen, WritePosition
 from prompt_toolkit.output import Output, ColorDepth
 from prompt_toolkit.styles import BaseStyle, DummyStyleTransformation, StyleTransformation
 from prompt_toolkit.utils import is_windows
 
 from collections import deque
+# Patched by Leistungsabfall
 from six.moves import range
 import time
 import threading
@@ -176,8 +178,26 @@ def _output_screen_diff(app, output, screen, current_pos, color_depth,
                 if c in zero_width_escapes_row:
                     write_raw(zero_width_escapes_row[c])
 
+                # Patched by Leistungsabfall
+                needs_cursor_normalization = char_width > 1
+
+                if needs_cursor_normalization:
+                    # Paint the complete cell area first. Some terminals render
+                    # unsupported emoji narrower than their Unicode cell width.
+                    output_char(Char(' ' * char_width, new_char.style))
+                    write('\r')
+                    if c:
+                        _output_cursor_forward(c)
+
                 output_char(new_char)
                 current_pos = Point(x=current_pos.x + char_width, y=current_pos.y)
+
+                # Patched by Leistungsabfall
+                if needs_cursor_normalization:
+                    # Place the next character at the screen coordinate
+                    # calculated for the complete grapheme.
+                    write('\r')
+                    _output_cursor_forward(current_pos.x)
 
             c += char_width
 

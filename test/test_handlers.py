@@ -174,6 +174,16 @@ class TestHandler(unittest.TestCase):
         self.assertEqual(Globals.text_field.text, '()')
         self.assertEqual(Globals.text_field.document.cursor_position, 1)
 
+        init_text_field('', 0)
+        keys.handle_char('👍')
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('', 0)
+        keys.handle_char('❤️')
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
         @patch('prompt_toolkit.layout.Layout.has_focus', lambda *args, **kwargs: False)
         def test_in_menu():
             init_text_field('a', 1)
@@ -838,6 +848,26 @@ class TestHandler(unittest.TestCase):
         self.assertEqual(Globals.text_field.text, 'a ')
         self.assertEqual(Globals.text_field.document.cursor_position, 1+1)
 
+        init_text_field('👍', 1)
+        keys.handle_backspace()
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('a👍', 2)
+        keys.handle_backspace()
+        self.assertEqual(Globals.text_field.text, 'a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('❤️', 1)
+        keys.handle_backspace()
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('a❤️', 2)
+        keys.handle_backspace()
+        self.assertEqual(Globals.text_field.text, 'a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
         @patch('prompt_toolkit.layout.Layout.has_focus', lambda *args, **kwargs: False)
         def test_in_menu():
             init_text_field('a', 1)
@@ -935,6 +965,26 @@ class TestHandler(unittest.TestCase):
         self.assertEqual(Globals.text_field.document.cursor_position, 1)
         self.assertFalse(text_helper.has_selection())
 
+        init_text_field('👍', 0)
+        keys.handle_delete()
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('a👍', 1)
+        keys.handle_delete()
+        self.assertEqual(Globals.text_field.text, 'a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
+        init_text_field('❤️', 0)
+        keys.handle_delete()
+        self.assertEqual(Globals.text_field.text, '')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+
+        init_text_field('a❤️', 1)
+        keys.handle_delete()
+        self.assertEqual(Globals.text_field.text, 'a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+
         @patch('prompt_toolkit.layout.Layout.has_focus',
                lambda *args, **kwargs: has_focus(Globals.root_container.window, *args, **kwargs))
         def test_in_menu():
@@ -1031,6 +1081,54 @@ class TestHandler(unittest.TestCase):
         keys.handle_arrow(Direction.Down)
         self.assertEqual(Globals.text_field.text, 'abcd\nefg')
         self.assertEqual(Globals.text_field.document.cursor_position, 4+1+1)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('👍', 0)
+        keys.handle_arrow(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('👍', 1)
+        keys.handle_arrow(Direction.Left)
+        self.assertEqual(Globals.text_field.text, '👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('👍a', 0)
+        keys.handle_arrow(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '👍a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('a👍', 2)
+        keys.handle_arrow(Direction.Left)
+        self.assertEqual(Globals.text_field.text, 'a👍')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('❤️', 0)
+        keys.handle_arrow(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('❤️', 1)
+        keys.handle_arrow(Direction.Left)
+        self.assertEqual(Globals.text_field.text, '❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 0)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('❤️a', 0)
+        keys.handle_arrow(Direction.Right)
+        self.assertEqual(Globals.text_field.text, '❤️a')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
+        self.assertFalse(text_helper.has_selection())
+
+        init_text_field('a❤️', 2)
+        keys.handle_arrow(Direction.Left)
+        self.assertEqual(Globals.text_field.text, 'a❤️')
+        self.assertEqual(Globals.text_field.document.cursor_position, 1)
         self.assertFalse(text_helper.has_selection())
 
         def called():

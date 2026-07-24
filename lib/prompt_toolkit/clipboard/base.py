@@ -7,6 +7,8 @@ from six import with_metaclass
 import six
 
 from prompt_toolkit.selection import SelectionType
+# Patched by Leistungsabfall
+from prompt_toolkit.utils import GraphemeString
 
 __all__ = [
     'Clipboard',
@@ -27,7 +29,8 @@ class ClipboardData(object):
         assert isinstance(text, six.string_types)
         assert type in (SelectionType.CHARACTERS, SelectionType.LINES, SelectionType.BLOCK)
 
-        self.text = text
+        # Patched by Leistungsabfall
+        self.text = GraphemeString(text)
         self.type = type
 
 

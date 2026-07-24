@@ -1,0 +1,11 @@
+Mixed-tone ZWJ: 👩🏿‍❤️‍💋‍👨🏻
+Long families: 👩🏽‍👩🏿‍👧🏻‍👦🏾
+Directional sequences: 🏃🏽‍➡️
+Subdivision tag flags: 🏴 (England/Scotland/Wales encode hidden tag characters)
+Combining-mark torture tests: 🧑🏽‍🚀⃝̸̲
+Malformed/repeated joiners: 👩‍‍🚀
+Emoji/text selector conflicts: ☀︎️
+Chained modifiers/selectors: 👍🏻🏿️
+Long nonstandard ZWJ chains: 🧑‍🚀‍🔥‍💻‍🛸
+
+The last five are deliberately adversarial rather than standardized emoji, making them useful for testing segmentation and terminal recovery.
