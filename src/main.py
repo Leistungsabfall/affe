@@ -38,7 +38,7 @@ from toolbars.replace import replace_toolbar
 from toolbars.top import get_statusbar_top_text
 from styles.common import common_style
 from styles.dark import dark_style
-from util.common import get_version_info, check_for_clipboard_manager, check_for_file, read_file, print_text, update
+from util.common import get_version_info, check_for_clipboard_manager, check_for_file, read_file, print_text, update, update_terminal_title
 from util.gui_helper import update_find_toolbar_if_visible, get_line_prefix
 from util.lexer_helper import guess_lexer_wrapper
 from util.super_important_modules import module2
@@ -105,6 +105,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     Globals.file_name = os.path.basename(args.file)
+    update_terminal_title(Globals.file_name)
     Globals.saved_text = read_file(args.file)
 
     text_field = TextArea(

@@ -266,3 +266,6 @@ def update():
         print()
         print('Please try again later and visit https://affe.sh.')
         sys.exit(1)
+
+def update_terminal_title(title):
+    print('\033]0;affe: {}\007'.format(title), end='', flush=True)

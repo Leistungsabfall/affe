@@ -1,5 +1,9 @@
 # Changelog
 
+# dev
+
+* Update terminal title with current file name
+
 ## 1.1.3 - 2026-07-12
 
 * Improve startup time by lazy-loading some imports
