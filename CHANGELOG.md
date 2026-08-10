@@ -1,8 +1,10 @@
 # Changelog
 
-# dev
+## 1.1.4 - 2026-08-10
 
+* Improve emoji support
 * Update terminal title with current file name
+* Update dependencies
 
 ## 1.1.3 - 2026-07-12
 
