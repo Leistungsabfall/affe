@@ -186,7 +186,7 @@ So you may already know most of them from Notepad++ or your favorite IDE.
 
 * Why yet another text editor?
   * `affe` aims to be very user-friendly while still being a terminal-based text editor.
-    It is possible to control `affe` completely mouse-driven so you can start right away.
+    It is possible to control `affe` completely with the mouse, so you can start right away.
     And keyboard shortcuts are designed to be intuitive.
 
 * Which programming languages are supported for syntax highlighting?
@@ -200,7 +200,7 @@ So you may already know most of them from Notepad++ or your favorite IDE.
   * `sudo` does not inherit the user's `PATH` environment variable.
   Create a symlink: `sudo ln -s $(which affe) /usr/local/bin/affe`.
 
-* Why is `Ctrl+Arrow Down` and `Ctrl+Arrow Up` not working?
+* Why are `Ctrl+Arrow Down` and `Ctrl+Arrow Up` not working?
   * This is a known issue on macOS. The `Ctrl+Arrow Down` and `Ctrl+Arrow Up` keybindings are reserved by the system for switching between spaces.
     You can change this in the system preferences: `System Preferences > Keyboard > Shortcuts > Mission Control`:
     Select the `Mission Control` and `Program Windows` options and uncheck them or change the keybindings to something else (e.g. `Ctrl+Shift+Arrow Down` and `Ctrl+Shift+Arrow Up`).
