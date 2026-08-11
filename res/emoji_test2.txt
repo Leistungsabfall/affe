@@ -7,5 +7,29 @@ Malformed/repeated joiners: 👩‍‍🚀
 Emoji/text selector conflicts: ☀︎️
 Chained modifiers/selectors: 👍🏻🏿️
 Long nonstandard ZWJ chains: 🧑‍🚀‍🔥‍💻‍🛸
+Leading/trailing joiners: ‍😀 😀‍
+Joiners around text and punctuation: 😀‍A‍🚀 👍‍!‍🏿
+Empty/repeated joiner chains: ‍ ‍‍ ‍‍‍
+Reversed ZWJ component order: 🚀‍👩 🦰‍🧑
+Conflicting gender components: 🧑‍♀️‍♂️ 👩‍♂️‍♀️
+Conflicting hair components: 🧑‍🦰‍🦱 🧑‍🦲‍🦳
+Orphan skin-tone modifiers: 🏻 🏽 🏿
+Modifiers before their base: 🏽👍 🏿👩‍🚀
+Stacked skin-tone modifiers: 👍🏻🏿 👩🏼🏽‍💻
+Modifiers on unsupported bases: 🚀🏽 ❤️🏿 🌲🏻
+Modifiers after complete ZWJ sequences: 👩‍🚀🏽 👨‍👩‍👧🏿
+Detached variation selectors: ︎ ️
+Repeated/conflicting variation selectors: ☀️️ ☀︎︎ ❤️︎️
+Selectors on joiners and modifiers: 😀‍️🚀 👍🏽️︎
+Malformed keycaps: A️⃣ 1⃣️ #️️⃣
+Keycap ZWJ chains: 1️⃣‍2️⃣ #️⃣‍*️⃣
+Incomplete and overlong flags: 🇦 🇦🇧🇨 🇦🇧🇨🇩🇪
+Joiners and modifiers inside flags: 🇦‍🇧 🇺🏽🇸
+Nonstandard object chains: 🍎‍🚀 🐒‍💻‍🎸
+Repeated components: 👁️‍👁️‍👁️ 👩‍👩‍👩‍👩‍👩
+Combining marks before and after emoji: ̸⃝😀 😀⃝̸̲̿
+Mixed presentation chains: ☀︎‍☀️‍☀︎️
+ASCII/emoji alternation: A‍😀‍1‍🏽‍Z
+Only invisible controls: ‍︎️‍︎️
 
-The last five are deliberately adversarial rather than standardized emoji, making them useful for testing segmentation and terminal recovery.
+The malformed and nonstandard cases are deliberately adversarial, making them useful for testing segmentation, cursor movement, deletion, rendering, and terminal recovery.
