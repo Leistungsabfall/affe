@@ -16,7 +16,7 @@ from util.changelog_helper import get_changelog
 from util.git_helper import file_is_untracked, GIT_ERROR_TEXT
 from util.license_helper import get_license
 from util.readme_helper import get_readme
-from util.common import get_version_info, text_is_unsaved, read_file
+from util.common import get_version_info, text_is_unsaved, read_file, reset_terminal_title
 from util.gui_helper import show_message, show_scrollable_dialog, is_menu_focused
 from util.text_helper import move_cursor_to_next_match, get_find_matches
 from util.third_party_licenses_helper import get_third_party_licenses
@@ -24,6 +24,7 @@ from util.third_party_licenses_helper import get_third_party_licenses
 
 def handle_exit():
     def exit_():
+        reset_terminal_title()
         Globals.exit_request = True  # AutoUpdateThread will return not later than SUB_INTERVAL_SECONDS
         time.sleep(AutoUpdateThread.SUB_INTERVAL_SECONDS*1.5)
         get_app().exit()

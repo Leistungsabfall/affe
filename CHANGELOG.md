@@ -1,5 +1,9 @@
 # Changelog
 
+## dev
+
+* Restore original terminal title on exit
+
 ## 1.1.4 - 2026-08-10
 
 * Improve emoji support
