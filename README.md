@@ -90,8 +90,8 @@ python src/main.py
 To make `affe` available as a command, run:
 
 ```sh
-./scripts/install.sh dist
-cd dist
+./scripts/install.sh ~/.affe
+cd ~/.affe
 python3.14 -m venv env # Replace python3.14 with your python version
 . env/bin/activate
 python -m pip install --upgrade pip
@@ -102,7 +102,7 @@ deactivate
 Then, add the following line to your shell profile file (e.g. `~/.profile` or `~/.zprofile`):
 
 ```sh
-export PATH="$PATH:<path-to-dist-folder>" # Replace <path-to-dist-folder> with the actual path to the dist folder
+export PATH="$PATH:$HOME/.affe"
 ```
 
 After that, restart your terminal or run the above export command.
@@ -112,7 +112,7 @@ You can now start `affe` by simply running `affe` in the terminal.
 To use `affe` with `sudo`, create a symlink:
 
 ```sh
-sudo ln -sf <path-to-dist-folder>/affe /usr/local/bin/affe
+sudo ln -sf $HOME/.affe/affe /usr/local/bin/affe
 ```
 
 To set `affe` as your default editor, run:

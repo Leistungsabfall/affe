@@ -209,6 +209,12 @@ jobs:
             echo 'rm -rf ~/.affe'
             echo 'mkdir -p ~/.affe'
             echo 'tar xzf <path-to-affe.tar.gz> -C ~/.affe'
+            echo 'cd ~/.affe'
+            echo 'python3.14 -m venv env # Replace python3.14 with your python version'
+            echo '. env/bin/activate'
+            echo 'python -m pip install --upgrade pip'
+            echo 'pip install -r res/requirements.txt'
+            echo 'deactivate'
             echo 'rm -f <path-to-affe.tar.gz>'
             echo '```'
             echo
