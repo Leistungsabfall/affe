@@ -1,6 +1,6 @@
-coverage==7.13.5
-packaging==26.1
-pygments==2.20.0
-requests==2.33.1
+coverage==7.16.0
+packaging==26.3
+pygments==2.21.0
+requests==2.34.2
 six==1.17.0
-wcwidth==0.8.2
+wcwidth==0.8.3

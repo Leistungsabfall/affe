@@ -1,8 +1,9 @@
 # Changelog
 
-## dev
+## 1.1.5 - 2026-09-02
 
 * Restore original terminal title on exit
+* Update dependencies
 
 ## 1.1.4 - 2026-08-10
 
