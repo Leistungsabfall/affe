@@ -1,34 +1,23 @@
 import os
-import subprocess
 import tempfile
 
 from prompt_toolkit import HTML
 
 from globals import Globals
-from util.git_helper import file_is_untracked
+from util.git_helper import file_is_untracked, run_command, run_git
 
 
 def run():
     def is_dirty():
-        p = subprocess.Popen(
-            'git --no-optional-locks status --porcelain {}'.format(Globals.relative_file_path_from_git_dir),
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=Globals.git_dir,
+        _, output = run_git(
+            '--no-optional-locks', '--literal-pathspecs', 'status', '--porcelain', '--',
+            Globals.relative_file_path_from_git_dir,
         )
-        output = p.communicate()[0].decode('utf-8').strip()
-        return bool(output)
+        return bool(output.decode('utf-8').strip())
 
     def get_branch():
-        p = subprocess.Popen(
-            'git rev-parse --abbrev-ref HEAD',
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=Globals.git_dir,
-        )
-        output = p.communicate()[0].decode('utf-8').strip()
+        _, output = run_git('rev-parse', '--abbrev-ref', 'HEAD')
+        output = output.decode('utf-8').strip()
         if output == "HEAD":
             return 'detached*'
         return output
@@ -48,34 +37,23 @@ def run():
         return path.split(Globals.git_dir + '/', maxsplit=1)[-1]
 
     def write_file_from_git():
-        p = subprocess.Popen(
-            'git cat-file -p :%s > %s' % (Globals.relative_file_path_from_git_dir, git_file.name),
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=Globals.git_dir,
-        )
-        p.communicate()
-        return p.returncode == 0
+        returncode, _ = run_git('cat-file', '-p', ':' + Globals.relative_file_path_from_git_dir, stdout=git_file)
+        return returncode == 0
 
     def write_file_from_current_text():
         current_file.write(Globals.text_field.text)
         current_file.flush()
 
     def get_diff():
-        p = subprocess.Popen(
-            'diff %s %s --unified=0 \n' % (git_file.name, current_file.name),
-            universal_newlines=True,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
         try:
-            output = str(p.communicate()[0]).strip().split('\n')
+            returncode, output = run_command(
+                ['diff', '--unified=0', git_file.name, current_file.name],
+                text=True,
+            )
         except UnicodeDecodeError:
             return []
-        if p.returncode == 1:  # from "diff --help": 0 means no diff, 1 means diff, 2 means problems
-            return output
+        if returncode == 1:  # from "diff --help": 0 means no diff, 1 means diff, 2 means problems
+            return str(output).strip().split('\n')
         return []
 
     def plus_in_rest_of_chunk():

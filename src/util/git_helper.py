@@ -7,6 +7,30 @@ from globals import Globals
 
 GIT_ERROR_TEXT = 'This file does not seem to be tracked by git.'
 GIT_UNCOMMITTED_TEXT = 'not committed yet'
+COMMAND_NOT_FOUND_RETURN_CODE = 127
+
+
+def run_command(args, cwd=None, stdout=subprocess.PIPE, text=False):
+    """
+    Run a command without a shell and return (return code, stdout).
+    File paths are passed as separate arguments, so they don't need quoting.
+    """
+    try:
+        p = subprocess.Popen(
+            args,
+            stdout=stdout,
+            stderr=subprocess.DEVNULL,
+            cwd=cwd,
+            universal_newlines=text,
+        )
+    except OSError:
+        return COMMAND_NOT_FOUND_RETURN_CODE, '' if text else b''
+    output = p.communicate()[0]
+    return p.returncode, output
+
+
+def run_git(*args, stdout=subprocess.PIPE):
+    return run_command(['git', *args], cwd=Globals.git_dir, stdout=stdout)
 
 
 def file_is_untracked():
@@ -22,23 +46,12 @@ def file_is_untracked():
     if shutil.which('git') is None:
         return True
 
-    p = subprocess.Popen(
-        'git check-ignore {}'.format(Globals.relative_file_path_from_git_dir),
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=Globals.git_dir,
-    )
-    p.communicate()
-    if p.returncode == 0:
+    returncode, _ = run_git('check-ignore', '--', Globals.relative_file_path_from_git_dir)
+    if returncode == 0:
         return True
 
-    p = subprocess.Popen(
-        'git --no-optional-locks status --porcelain {}'.format(Globals.relative_file_path_from_git_dir),
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=Globals.git_dir,
+    _, output = run_git(
+        '--no-optional-locks', '--literal-pathspecs', 'status', '--porcelain', '--',
+        Globals.relative_file_path_from_git_dir,
     )
-    output = p.communicate()[0].decode('utf-8').strip()
-    return output.startswith('?? ')
+    return output.decode('utf-8').strip().startswith('?? ')

@@ -1,22 +1,14 @@
 import re
-import subprocess
 from datetime import datetime
 
 from globals import Globals
-from util.git_helper import file_is_untracked, GIT_UNCOMMITTED_TEXT
+from util.git_helper import file_is_untracked, run_git, GIT_UNCOMMITTED_TEXT
 
 
 def run():
     def get_blame_info():
-        p = subprocess.Popen(
-            'git blame --line-porcelain {}'.format(Globals.relative_file_path_from_git_dir),
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=Globals.git_dir,
-        )
-        output = p.communicate()[0].decode('utf-8').strip()
-        return output
+        _, output = run_git('blame', '--line-porcelain', '--', Globals.relative_file_path_from_git_dir)
+        return output.decode('utf-8').strip()
 
     def parse_blame_output():
         git_blame_by_line = []
