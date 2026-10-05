@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 from globals import Globals
 from util.git_helper import file_is_untracked, get_git_state_fingerprint, run_git, GitStateCache, \
@@ -25,7 +25,7 @@ def run():
                 author = re.search(r'author (?P<author>[^\n]*)\n', chunk).groupdict()['author']
                 commit_message = re.search(r'summary (?P<msg>[^\n]*)\n', chunk).groupdict()['msg']
                 author_timestamp = re.search(r'author-time (?P<time>[^\n]*)\n', chunk).groupdict()['time']
-                author_time_str = datetime.utcfromtimestamp(int(author_timestamp)).strftime('%Y-%m-%d')
+                author_time_str = datetime.fromtimestamp(int(author_timestamp), timezone.utc).strftime('%Y-%m-%d')
                 text = commit_hash + ' ' \
                     + author_time_str + ' ' \
                     + author + ': ' \
