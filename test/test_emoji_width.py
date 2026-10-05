@@ -15,6 +15,7 @@ from prompt_toolkit.layout.screen import Char, Point, Screen, Size, WritePositio
 from prompt_toolkit.output import ColorDepth, DummyOutput
 from prompt_toolkit.renderer import _output_screen_diff
 from prompt_toolkit.styles import DEFAULT_ATTRS
+from prompt_toolkit.utils import GraphemeString
 
 
 class RecordingOutput(DummyOutput):
@@ -125,3 +126,30 @@ class TestEmojiWidth(unittest.TestCase):
             content = control.create_content(80, 10)
             self.assertEqual(buffer.cursor_position, end_position)
             self.assertEqual(content.cursor_position, Point(x=0, y=2))
+
+    def test_grapheme_string_ascii_crlf_is_one_grapheme(self):
+        text = GraphemeString('a\r\nb')
+
+        self.assertEqual(len(text), 3)
+        self.assertEqual(list(text), ['a', '\r\n', 'b'])
+        self.assertEqual(text[1], '\r\n')
+        self.assertEqual(text.codepoint_position(2), 3)
+        self.assertEqual(text.grapheme_position(3), 2)
+
+    def test_grapheme_string_ascii_uses_codepoint_indexes(self):
+        text = GraphemeString('ab\ncd')
+
+        self.assertEqual(len(text), 5)
+        self.assertEqual(text[1:4], 'b\nc')
+        self.assertIsInstance(text[1:4], GraphemeString)
+        self.assertEqual(text[-1], 'd')
+        self.assertEqual(text.find('c', 1), 3)
+
+    def test_grapheme_string_mixed_lines(self):
+        text = GraphemeString('ab\n👩🏽‍💻ä\ne\u0301x')
+
+        self.assertEqual(len(text), 8)
+        self.assertEqual(text[3], '👩🏽‍💻')
+        self.assertEqual(text[6], 'e\u0301')
+        self.assertEqual(text[3:7], '👩🏽‍💻ä\ne\u0301')
+        self.assertEqual(text.find('x'), 7)

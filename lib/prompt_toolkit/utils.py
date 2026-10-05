@@ -39,22 +39,47 @@ _GRAPHEME_LINE_BREAK_RE = re.compile(
 
 
 # Patched by Leistungsabfall
+def _is_ascii_without_crlf(text):
+    # In ASCII text every code point is its own grapheme, except for '\r\n'.
+    return text.isascii() and '\r\n' not in text
+
+
+# Patched by Leistungsabfall
+@memoized(maxsize=8192)
+def _get_line_graphemes(line):
+    return tuple(iter_graphemes(line))
+
+
+# Patched by Leistungsabfall
 @memoized(maxsize=1024)
 def _get_graphemes(text):
+    if _is_ascii_without_crlf(text):
+        return tuple(text)
+
     graphemes = []
     start = 0
 
     # Segment each hard-line-delimited run independently. Grapheme state,
     # especially regional-indicator pairing, must not leak across lines.
+    # Lines are cached separately, so after an edit only changed lines
+    # need to be segmented again.
     for match in _GRAPHEME_LINE_BREAK_RE.finditer(text):
-        graphemes.extend(iter_graphemes(text[start:match.start()]))
+        graphemes.extend(_get_segmented_line(text[start:match.start()]))
         graphemes.append(match.group())
         start = match.end()
 
-    graphemes.extend(iter_graphemes(text[start:]))
+    graphemes.extend(_get_segmented_line(text[start:]))
     return tuple(graphemes)
 
 
+# Patched by Leistungsabfall
+def _get_segmented_line(line):
+    if line.isascii():
+        return line
+    return _get_line_graphemes(line)
+
+
+# Patched by Leistungsabfall
 class GraphemeString(text_type):
     """
     Unicode string whose indexes refer to grapheme clusters.
@@ -65,22 +90,48 @@ class GraphemeString(text_type):
     def _graphemes(self):
         return _get_graphemes(text_type(self))
 
+    def _is_codepoint_aligned(self):
+        """
+        True if every grapheme consists of exactly one code point. Grapheme
+        indexes are then identical to code point indexes, so the (much
+        faster) native ``str`` operations can be used.
+        """
+        try:
+            return self.__codepoint_aligned
+        except AttributeError:
+            aligned = (
+                _is_ascii_without_crlf(self)
+                or len(self._graphemes()) == text_type.__len__(self)
+            )
+            self.__codepoint_aligned = aligned
+            return aligned
+
     def __len__(self):
+        if self._is_codepoint_aligned():
+            return text_type.__len__(self)
         return len(self._graphemes())
 
     def __iter__(self):
+        if self._is_codepoint_aligned():
+            return text_type.__iter__(self)
         return iter(self._graphemes())
 
     def __getitem__(self, index):
+        if self._is_codepoint_aligned():
+            return GraphemeString(text_type.__getitem__(self, index))
         graphemes = self._graphemes()
         if isinstance(index, slice):
             return GraphemeString('').join(graphemes[index])
         return GraphemeString(graphemes[index])
 
     def codepoint_position(self, grapheme_position):
+        if self._is_codepoint_aligned():
+            return text_type.__len__(text_type.__getitem__(self, slice(None, grapheme_position)))
         return len(text_type('').join(self._graphemes()[:grapheme_position]))
 
     def grapheme_position(self, codepoint_position):
+        if self._is_codepoint_aligned():
+            return text_type.__len__(text_type.__getitem__(self, slice(None, codepoint_position)))
         return len(GraphemeString(text_type(self)[:codepoint_position]))
 
     def _search_bounds(self, start, end):
