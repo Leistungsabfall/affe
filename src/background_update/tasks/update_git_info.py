@@ -4,7 +4,15 @@ import tempfile
 from prompt_toolkit import HTML
 
 from globals import Globals
-from util.git_helper import file_is_untracked, run_command, run_git
+from util.git_helper import file_is_untracked, get_git_state_fingerprint, run_command, run_git, GitStateCache
+
+
+git_state_cache = GitStateCache()
+
+
+class _Cache:
+    git_file_content = None  # None if the file is not in the git index
+    text = None
 
 
 def run():
@@ -36,12 +44,18 @@ def run():
         # /home/git_dir/foo/bla.txt => foo/bla.txt
         return path.split(Globals.git_dir + '/', maxsplit=1)[-1]
 
+    def get_file_content_from_git():
+        returncode, output = run_git('cat-file', '-p', ':' + Globals.relative_file_path_from_git_dir)
+        if returncode != 0:
+            return None
+        return output
+
     def write_file_from_git():
-        returncode, _ = run_git('cat-file', '-p', ':' + Globals.relative_file_path_from_git_dir, stdout=git_file)
-        return returncode == 0
+        git_file.write(_Cache.git_file_content)
+        git_file.flush()
 
     def write_file_from_current_text():
-        current_file.write(Globals.text_field.text)
+        current_file.write(text)
         current_file.flush()
 
     def get_diff():
@@ -78,20 +92,32 @@ def run():
     Globals.relative_file_path_from_git_dir = get_relative_file_path_from_git_dir(file_path)
 
     if not Globals.git_dir:
+        git_state_cache.reset()
         Globals.git_status_by_line = dict()
         return
 
-    Globals.git_dirty_indicator = is_dirty()
-    Globals.git_branch = get_branch()
-    Globals.git_untracked = file_is_untracked()
+    git_state = get_git_state_fingerprint(file_path, Globals.git_dir)
+    if git_state_cache.is_refresh_needed(git_state):
+        Globals.git_dirty_indicator = is_dirty()
+        Globals.git_branch = get_branch()
+        Globals.git_untracked = file_is_untracked()
+        _Cache.git_file_content = get_file_content_from_git()
+        git_state_cache.mark_refreshed(git_state)
+        _Cache.text = None
 
-    with tempfile.NamedTemporaryFile('w') as git_file, tempfile.NamedTemporaryFile('w') as current_file:
+    text = Globals.text_field.text
+    if _Cache.text == text:
+        return  # neither git state nor text changed, so the inline diff is still up to date
+    _Cache.text = text
+
+    if _Cache.git_file_content is None:
+        Globals.git_status_by_line = dict()
+        return
+
+    with tempfile.NamedTemporaryFile('wb') as git_file, tempfile.NamedTemporaryFile('w') as current_file:
         git_status_by_line = dict()
 
-        if not write_file_from_git():
-            Globals.git_status_by_line = dict()
-            return
-
+        write_file_from_git()
         write_file_from_current_text()
         git_diff = get_diff()
 

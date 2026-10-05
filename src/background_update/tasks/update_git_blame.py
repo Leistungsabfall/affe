@@ -1,8 +1,13 @@
+import os
 import re
 from datetime import datetime
 
 from globals import Globals
-from util.git_helper import file_is_untracked, run_git, GIT_UNCOMMITTED_TEXT
+from util.git_helper import file_is_untracked, get_git_state_fingerprint, run_git, GitStateCache, \
+    GIT_UNCOMMITTED_TEXT
+
+
+git_state_cache = GitStateCache()
 
 
 def run():
@@ -28,11 +33,27 @@ def run():
             git_blame_by_line.append(text)
         return git_blame_by_line
 
+    def get_cache_key():
+        if not Globals.git_dir:
+            return Globals.git_blame_active, Globals.file_path
+        try:
+            file_path = os.path.realpath(Globals.file_path)
+        except OSError:
+            return Globals.git_blame_active, Globals.file_path
+        return Globals.git_blame_active, get_git_state_fingerprint(file_path, Globals.git_dir)
+
+    # git blame only depends on the file on disk and the git state, not on the unsaved text
+    cache_key = get_cache_key()
+    if not git_state_cache.is_refresh_needed(cache_key):
+        return
+
     if file_is_untracked():
+        git_state_cache.mark_refreshed(cache_key)
         return
 
     if not Globals.git_blame_active:
         Globals.git_blame_by_line = []
+        git_state_cache.mark_refreshed(cache_key)
         return
 
     git_blame_output = get_blame_info()
@@ -44,3 +65,4 @@ def run():
         Globals.git_blame_by_line = parse_blame_output()
     except Exception:
         return
+    git_state_cache.mark_refreshed(cache_key)
