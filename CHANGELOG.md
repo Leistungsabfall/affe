@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.6 - 2026-10-22
+
+* Performance improvements
+
 ## 1.1.5 - 2026-09-02
 
 * Restore original terminal title on exit
